@@ -1,0 +1,1491 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23241a14'/%3E%3Crect x='6' y='8' width='20' height='5' rx='1.5' fill='%231baf7a'/%3E%3Crect x='6' y='14' width='20' height='5' rx='1.5' fill='%232a78d6'/%3E%3Crect x='6' y='20' width='20' height='5' rx='1.5' fill='%23ff6a55'/%3E%3C/svg%3E">
+<link rel="canonical" href="https://yerin-benny.github.io/daegu-waste-2030/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="덜 버리는데 가장 많이 묻는 도시, 대구">
+<meta property="og:description" content="대구는 쓰레기를 전국 평균보다 적게 버리지만 매립률은 17개 시도 중 1위입니다. 2024년 생활폐기물 공공데이터로 원인을 진단하고 2030년 직매립 금지 대응을 계산했습니다.">
+<meta property="og:url" content="https://yerin-benny.github.io/daegu-waste-2030/">
+<meta property="og:image" content="https://yerin-benny.github.io/daegu-waste-2030/og.png">
+<meta property="og:image:width" content="1080">
+<meta property="og:image:height" content="1350">
+<meta name="twitter:card" content="summary_large_image">
+
+<title>덜 버리는데 가장 많이 묻는 도시, 대구</title>
+<meta name="description" content="2024년 대구 생활폐기물 공공데이터 진단과 2030 직매립 금지 대응 시뮬레이터">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.min.css">
+<style>
+/* 공통 토큰 - 라이트/다크 */
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb; --surface-2: #f3f2ee;
+  --ink: #0b0b0b; --ink-2: #52514e; --ink-3: #6f6e69; --muted: #898781;
+  --grid: #e1e0d9; --axis: #c3c2b7; --border: rgba(11,11,11,0.10);
+  --c-mat: #1baf7a; --c-en: #eda100; --c-inc: #2a78d6; --c-land: #e34948;
+  --k1: #2a78d6; --k2: #eb6834; --k3: #1baf7a;
+  --accent: #e34948; --accent-ink: #b42828; --other: #cfcec7;
+  --good-ink: #006300; --div-neg: #2a78d6; --div-pos: #e34948; --div-mid: #f0efec;
+  --font: "Pretendard", "Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --surface-2: #232322;
+    --ink: #f0efec; --ink-2: #c3c2b7; --ink-3: #a3a29a; --muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+    --c-mat: #199e70; --c-en: #c98500; --c-inc: #3987e5; --c-land: #e66767;
+    --k1: #3987e5; --k2: #d95926; --k3: #199e70;
+    --accent: #e66767; --accent-ink: #f08a8a; --other: #4a4a46;
+    --good-ink: #0ca30c; --div-neg: #3987e5; --div-pos: #e66767; --div-mid: #383835;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d; --surface: #1a1a19; --surface-2: #232322;
+  --ink: #f0efec; --ink-2: #c3c2b7; --ink-3: #a3a29a; --muted: #898781;
+  --grid: #2c2c2a; --axis: #383835; --border: rgba(255,255,255,0.10);
+  --c-mat: #199e70; --c-en: #c98500; --c-inc: #3987e5; --c-land: #e66767;
+  --k1: #3987e5; --k2: #d95926; --k3: #199e70;
+  --accent: #e66767; --accent-ink: #f08a8a; --other: #4a4a46;
+  --good-ink: #0ca30c; --div-neg: #3987e5; --div-pos: #e66767; --div-mid: #383835;
+}
+
+/* 차트 공통 */
+.viz svg { display: block; width: 100%; height: auto; overflow: visible; }
+.viz text { font-family: var(--font); fill: var(--ink-2); font-size: 12px; }
+.viz .t-muted { fill: var(--muted); font-size: 11px; }
+.viz .t-strong { fill: var(--ink); font-weight: 700; }
+.viz .t-in { fill: #fff; font-size: 11px; font-weight: 600; }
+.viz .t-in-dark { fill: #0b0b0b; font-size: 11px; font-weight: 600; }
+.viz .grid { stroke: var(--grid); stroke-width: 1; }
+.viz .axis { stroke: var(--axis); stroke-width: 1; }
+.viz .hit { fill: transparent; cursor: default; }
+.viz .hit:hover + .mark, .viz g.row:hover .mark { filter: brightness(1.08); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--ink-2); margin: 0 0 8px; padding: 0; list-style: none; }
+.legend li { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.legend i.line { height: 2px; border-radius: 1px; width: 14px; }
+.tip { position: fixed; z-index: 50; pointer-events: none; background: var(--surface); color: var(--ink); border: 1px solid var(--border);
+  box-shadow: 0 6px 24px rgba(0,0,0,.14); border-radius: 8px; padding: 8px 10px; font: 12px/1.45 var(--font); max-width: 260px; opacity: 0; transition: opacity .12s; }
+.tip b { font-weight: 700; } .tip .k { color: var(--ink-2); }
+.tip .sw { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; vertical-align: 1px; }
+
+/* 구·군 진단표 */
+table.heat { width: 100%; border-collapse: separate; border-spacing: 2px; font-size: 13px; font-variant-numeric: tabular-nums; }
+table.heat th, table.heat td { padding: 7px 8px; text-align: right; border-radius: 4px; }
+table.heat thead th { font-weight: 600; color: var(--ink-2); font-size: 12px; vertical-align: bottom; }
+table.heat thead th small { display: block; font-weight: 400; color: var(--muted); }
+table.heat tbody th { text-align: left; font-weight: 600; white-space: nowrap; }
+table.heat tr.ref td, table.heat tr.ref th { border-top: 1px solid var(--axis); color: var(--ink-2); font-weight: 600; }
+
+</style>
+<style>
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--page); color: var(--ink); font-family: var(--font); -webkit-font-smoothing: antialiased; }
+body { font-size: 15px; line-height: 1.6; word-break: keep-all; overflow-wrap: break-word; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
+.eyebrow { font-size: 13px; color: var(--ink-2); letter-spacing: .02em; }
+h1 { font-size: clamp(28px, 5vw, 44px); line-height: 1.2; margin: 6px 0 12px; letter-spacing: -0.02em; font-weight: 800; }
+h1 em { font-style: normal; color: var(--accent-ink); }
+.lede { font-size: 17px; color: var(--ink-2); max-width: 760px; margin: 0; }
+nav.toc { position: sticky; top: 0; z-index: 20; background: color-mix(in oklab, var(--page) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); margin-top: 20px; }
+nav.toc .wrap { display: flex; align-items: center; gap: 4px; overflow-x: auto; padding-top: 8px; padding-bottom: 8px; scrollbar-width: none; }
+nav.toc a { white-space: nowrap; font-size: 13px; color: var(--ink-2); text-decoration: none; padding: 6px 10px; border-radius: 6px; }
+nav.toc a:hover, nav.toc a.on { background: var(--surface-2); color: var(--ink); }
+nav.toc .sp { flex: 1; }
+nav.toc button { font: inherit; font-size: 13px; background: none; border: 1px solid var(--border); color: var(--ink-2); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+section { padding: 40px 0 8px; scroll-margin-top: 56px; }
+.sec-no { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: .08em; }
+h2 { font-size: clamp(21px, 3vw, 27px); line-height: 1.3; margin: 4px 0 8px; letter-spacing: -0.01em; }
+.sec-lede { color: var(--ink-2); margin: 0 0 20px; max-width: 800px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 18px 14px; }
+.card h3 { font-size: 15px; margin: 0 0 2px; }
+.card .sub { font-size: 12.5px; color: var(--ink-2); margin: 0 0 12px; }
+.note { font-size: 12px; color: var(--muted); margin: 10px 0 0; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@media (max-width: 860px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
+/* 핵심 수치 */
+.hero { display: grid; grid-template-columns: 1.15fr 2fr; gap: 16px; margin-top: 24px; }
+@media (max-width: 860px) { .hero { grid-template-columns: 1fr; } }
+.hero-main { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 22px; display: flex; flex-direction: column; justify-content: space-between; }
+.hero-main .lab { font-size: 14px; color: var(--ink-2); }
+.hero-main .big { font-size: 64px; font-weight: 800; line-height: 1; letter-spacing: -0.03em; margin: 10px 0 6px; }
+.hero-main .cmp { font-size: 14px; color: var(--ink-2); }
+.hero-main .bar { margin-top: 18px; }
+.tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+@media (max-width: 520px) { .tiles { grid-template-columns: 1fr; } }
+.tile { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+.tile .lab { font-size: 13px; color: var(--ink-2); }
+.tile .val { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin: 2px 0; }
+.tile .val small { font-size: 15px; font-weight: 600; color: var(--ink-2); margin-left: 2px; }
+.tile .cmp { font-size: 12.5px; color: var(--ink-2); }
+.badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 700; border-radius: 999px; padding: 1px 8px; margin-left: 6px; vertical-align: 2px; }
+.badge.bad { background: color-mix(in oklab, var(--c-land) 16%, transparent); color: var(--accent-ink); }
+.badge.ok { background: color-mix(in oklab, var(--c-mat) 18%, transparent); color: var(--good-ink); }
+/* 지표 선택 */
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; background: var(--surface-2); padding: 4px; border-radius: 8px; margin-bottom: 12px; }
+.seg button { font: inherit; font-size: 13px; border: 0; background: transparent; color: var(--ink-2); border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08); font-weight: 600; }
+/* 표 */
+.scroll-x { overflow-x: auto; }
+.divlegend { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-2); margin-top: 10px; flex-wrap: wrap; }
+.divlegend .ramp { width: 140px; height: 10px; border-radius: 3px; background: linear-gradient(90deg, color-mix(in oklab, var(--div-mid) 45%, var(--div-neg)), var(--div-mid), color-mix(in oklab, var(--div-mid) 45%, var(--div-pos))); }
+/* 인사이트 */
+.insight { border-left: 3px solid var(--accent); padding: 4px 0 4px 14px; margin: 16px 0 0; color: var(--ink); font-size: 14.5px; }
+.insight b { color: var(--accent-ink); }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 13px; }
+.kv dt { color: var(--ink-2); } .kv dd { margin: 0; }
+.chip { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); margin: 2px 4px 2px 0; }
+.cl-card { border-top: 3px solid; }
+/* 시뮬레이터 */
+.sim { display: grid; grid-template-columns: 1fr 1.2fr; gap: 16px; }
+@media (max-width: 860px) { .sim { grid-template-columns: 1fr; } }
+.ctl { margin-bottom: 16px; }
+.ctl label { display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; }
+.ctl label output { font-variant-numeric: tabular-nums; color: var(--ink); }
+.ctl p { font-size: 12.5px; color: var(--ink-2); margin: 2px 0 6px; }
+input[type=range] { width: 100%; accent-color: var(--c-inc); }
+.presets { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.presets button { font: inherit; font-size: 12.5px; border: 1px solid var(--border); background: var(--surface); color: var(--ink-2); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+.presets button:hover { color: var(--ink); background: var(--surface-2); }
+.res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.res { background: var(--surface-2); border-radius: 10px; padding: 10px 12px; }
+.res .lab { font-size: 12px; color: var(--ink-2); }
+.res .val { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+.res .val small { font-size: 13px; color: var(--ink-2); font-weight: 600; }
+.res .cmp { font-size: 12px; color: var(--ink-2); }
+.callout { margin-top: 12px; background: color-mix(in oklab, var(--c-land) 9%, var(--surface)); border: 1px solid color-mix(in oklab, var(--c-land) 25%, transparent); border-radius: 10px; padding: 12px 14px; font-size: 13.5px; }
+/* 방법론 */
+details.method { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; margin-bottom: 10px; }
+details.method summary { cursor: pointer; font-weight: 600; }
+details.method p, details.method li { font-size: 13.5px; color: var(--ink-2); }
+details.method table { border-collapse: collapse; font-size: 12.5px; width: 100%; }
+details.method td, details.method th { border-bottom: 1px solid var(--grid); padding: 6px 6px; text-align: left; vertical-align: top; }
+footer { padding: 32px 0 48px; color: var(--muted); font-size: 12.5px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* ---------- 히어로 띠: 매립지 흙빛 ---------- */
+:root { --hero-bg: #241a14; --hero-ink: #f7f2ea; --hero-ink2: #cdbfae; --hero-tile: #3b2d24; --hero-accent: #ff6a55; }
+.hero-band { background: var(--hero-bg); color: var(--hero-ink); position: relative; overflow: hidden; padding-block: 34px 74px; }
+.hero-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 28px 40px; align-items: center; position: relative; z-index: 1; }
+@media (max-width: 860px) { .hero-grid { grid-template-columns: 1fr; } }
+.hero-grid > * { min-width: 0; }
+.hero-band .eyebrow { color: var(--hero-ink2); }
+.hero-band h1 { color: var(--hero-ink); font-size: clamp(32px, 5.4vw, 54px); margin: 10px 0 14px; text-wrap: balance; }
+.hero-band h1 em { color: var(--hero-accent); }
+.hero-band .lede { color: var(--hero-ink2); font-size: 16.5px; max-width: 560px; }
+.hero-band .lede b { color: var(--hero-ink); }
+.hero-num { display: flex; align-items: flex-end; gap: 18px; margin-top: 26px; flex-wrap: wrap; }
+.hero-num .big { font-size: clamp(72px, 11vw, 116px); font-weight: 800; line-height: .9; letter-spacing: -0.04em; color: var(--hero-accent); font-variant-numeric: tabular-nums; }
+.hero-num .side { padding-bottom: 6px; font-size: 14.5px; color: var(--hero-ink2); line-height: 1.5; }
+.hero-num .side b { color: var(--hero-ink); font-size: 17px; }
+.map-cap { font-size: 12.5px; color: var(--hero-ink2); margin-bottom: 8px; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.map-cap b { color: var(--hero-ink); font-weight: 600; }
+.hero-band .viz text.tile-t.dk { fill: #241a14; } .hero-band .viz text.tile-t.lt { fill: #f7f2ea; }
+.ramp-leg { display: flex; align-items: center; gap: 8px; font-size: 11.5px; margin-top: 8px; color: var(--ink-2); }
+.ramp-leg i { flex: 0 0 120px; height: 8px; border-radius: 4px; }
+.hero-band .ramp-leg { color: var(--hero-ink2); } .hero-band .ramp-leg i { background: linear-gradient(90deg, var(--hero-tile), var(--hero-accent)); }
+.hero-waves { position: absolute; left: 0; right: 0; bottom: -1px; width: 100%; height: 58px; display: block; }
+.tiles { grid-template-columns: repeat(4, 1fr); margin-top: -38px; position: relative; z-index: 2; }
+@media (max-width: 860px) { .tiles { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 520px) { .tiles { grid-template-columns: 1fr; } }
+.tile { box-shadow: 0 6px 22px rgba(36, 26, 20, .10); }
+/* ---------- 타일·띠·지층 글자 ---------- */
+.viz text.tile-t.dk { fill: var(--ink); } .viz text.tile-t.lt { fill: #fff; } .viz text.tile-t.na { fill: var(--muted); }
+.viz text.tile-t.b { font-weight: 800; } .viz text.tile-t.v { font-weight: 600; font-variant-numeric: tabular-nums; }
+.viz .strip-bg { fill: transparent; } .viz .strip-row.on .strip-bg { fill: var(--surface-2); } .viz .strip-row:hover .strip-bg { fill: color-mix(in oklab, var(--surface-2) 70%, var(--grid)); }
+.viz text.strata-t.lt { fill: #fff; } .viz text.strata-t.dk { fill: #17120e; }
+.viz .stratum { cursor: default; } .viz .stratum:hover path { filter: brightness(1.07); }
+.viz .tile-g:hover rect:first-child { filter: brightness(1.08); }
+/* ---------- 움직임 ---------- */
+@keyframes growx { from { transform: scaleX(0); } }
+.viz path.mark { transform-box: fill-box; transform-origin: left center; animation: growx .7s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes pop { from { transform: scale(.4); opacity: 0; } }
+.viz .pop { transform-box: fill-box; transform-origin: center; animation: pop .45s cubic-bezier(.2, .9, .3, 1.2) both; }
+@keyframes sink { from { transform: translateY(-14px); opacity: 0; } }
+.viz .sink { animation: sink .5s ease-out both; }
+@keyframes pulse { 0% { opacity: .9; transform: scale(1); } 100% { opacity: 0; transform: scale(1.45); } }
+.viz .pulse { transform-box: fill-box; transform-origin: center; animation: pulse 2.2s ease-out infinite; }
+@keyframes flow { to { stroke-dashoffset: -26; } }
+.viz .flow { stroke: var(--surface); stroke-opacity: .55; stroke-dasharray: 2 11; stroke-linecap: round; animation: flow 1.1s linear infinite; }
+.viz .ribbon { transition: opacity .15s; } .viz svg:hover .ribbon { opacity: .45; } .viz svg:hover .ribbon:hover { opacity: 1; }
+@keyframes radarin { from { transform: scale(.2); opacity: 0; } }
+.viz .radar-in { transform-box: fill-box; transform-origin: center; animation: radarin .8s cubic-bezier(.2, .8, .2, 1) both; }
+@media (prefers-reduced-motion: reduce) { .viz * { animation: none !important; } }
+.dayg { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--grid); }
+.dayg .lab { font-size: 13px; color: var(--ink-2); display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.dayg .lab b { font-size: 22px; color: var(--ink); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.dayg .track { height: 22px; border-radius: 6px; background: color-mix(in oklab, var(--c-land) 16%, var(--surface-2)); margin-top: 8px; overflow: hidden; display: flex; }
+.dayg .fill { background: var(--c-land); border-radius: 6px 0 0 6px; transition: width .25s ease; }
+.dayg .ends { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--muted); margin-top: 4px; }
+.dayg p { font-size: 12.5px; color: var(--ink-2); margin: 8px 0 0; }
+@media (min-width: 861px) { .grid2.g-strata { grid-template-columns: 1.25fr 1fr; } }
+.swipe-hint { display: none; } @media (max-width: 640px) { .swipe-hint { display: block; } }
+.creds { list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+@media (max-width: 860px) { .creds { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 520px) { .creds { grid-template-columns: 1fr; } }
+.creds li { font-size: 12px; color: var(--ink-2); border-left: 3px solid var(--axis); padding: 2px 0 2px 10px; line-height: 1.45; }
+.creds li b { display: block; color: var(--ink); font-size: 13.5px; }
+.bignum { font-size: clamp(40px, 6vw, 60px); font-weight: 800; letter-spacing: -0.03em; line-height: 1; color: var(--accent-ink); font-variant-numeric: tabular-nums; }
+.bignum small { font-size: 18px; font-weight: 700; color: var(--ink-2); margin-left: 6px; letter-spacing: 0; }
+.meter2 { display: grid; grid-template-columns: auto 1fr auto; gap: 6px 10px; align-items: center; font-size: 13px; margin: 10px 0 4px; }
+.meter2 .tr { height: 16px; border-radius: 5px; background: var(--surface-2); overflow: hidden; }
+.meter2 .tr i { display: block; height: 100%; border-radius: 5px 0 0 5px; }
+.meter2 b { font-variant-numeric: tabular-nums; font-size: 15px; }
+.mine-ctl { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center; margin-bottom: 16px; }
+.mine-ctl label { font-size: 13.5px; font-weight: 600; margin-right: 8px; }
+.mine-ctl select { font: inherit; font-size: 14px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--axis); background: var(--surface); color: var(--ink); }
+.mine-ctl .rng { display: flex; align-items: center; gap: 10px; } .mine-ctl .rng input { width: 150px; } .mine-ctl output { font-weight: 700; font-variant-numeric: tabular-nums; }
+.hh-seg { display: flex; height: 30px; border-radius: 6px; overflow: hidden; gap: 2px; margin: 12px 0 8px; }
+.hh-seg span { display: flex; align-items: center; padding-left: 8px; font-size: 12px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; min-width: 0; }
+.hh-list { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; font-size: 14px; }
+.hh-list li { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--grid); padding-bottom: 6px; color: var(--ink-2); }
+.hh-list li b { color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+table.kpi { width: 100%; border-collapse: collapse; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+table.kpi th, table.kpi td { border-bottom: 1px solid var(--grid); padding: 8px 8px; text-align: left; }
+table.kpi thead th { font-size: 12px; color: var(--ink-2); font-weight: 600; } table.kpi td.n, table.kpi th.n { text-align: right; white-space: nowrap; }
+table.kpi td.n b { color: var(--good-ink); }
+.refs { font-size: 13px; color: var(--ink-2); padding-left: 18px; margin: 6px 0 0; } .refs li { margin-bottom: 4px; } .refs a, details.method a { color: var(--k1); }
+.fx { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+@media (max-width: 860px) { .fx { grid-template-columns: repeat(2, 1fr); } }
+.fx > div { background: var(--surface-2); border-radius: 10px; padding: 12px 14px; }
+.fx .l { font-size: 12.5px; color: var(--ink-2); } .fx .v { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin: 2px 0; font-variant-numeric: tabular-nums; }
+.fx .v small { font-size: 13px; font-weight: 600; color: var(--ink-2); margin-left: 3px; } .fx .c { font-size: 12px; color: var(--ink-2); }
+.plans { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+@media (max-width: 860px) { .plans { grid-template-columns: 1fr; } }
+.plan { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; border-top: 4px solid var(--axis); min-width: 0; }
+.plan.wide { grid-column: 1 / -1; }
+.plan .n { font-size: 12px; font-weight: 800; letter-spacing: .06em; color: var(--ink-2); }
+.plan h3 { font-size: 17px; margin: 2px 0 10px; }
+.plan dl { margin: 0; display: grid; grid-template-columns: 74px 1fr; gap: 8px 12px; font-size: 13.5px; }
+.plan dt { font-weight: 700; color: var(--ink-2); font-size: 12.5px; padding-top: 1px; }
+.plan dd { margin: 0; color: var(--ink-2); } .plan dd b { color: var(--ink); }
+.plan dd ol { margin: 0; padding-left: 18px; } .plan dd li { margin-bottom: 3px; }
+.plan dd.eff { background: color-mix(in oklab, var(--c-mat) 10%, var(--surface)); border-radius: 8px; padding: 8px 10px; color: var(--ink); }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.steps li { display: grid; grid-template-columns: 62px 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--grid); font-size: 13.5px; color: var(--ink-2); }
+.steps li:last-child { border-bottom: 0; } .steps b.y { font-size: 16px; color: var(--ink); font-variant-numeric: tabular-nums; } .steps b.t { color: var(--ink); display: block; }
+.steps li.fin b.y { color: var(--accent-ink); }
+.cap-note { font-size: 11.5px; color: var(--muted); margin: 8px 0 0; }
+.tblview { margin-top: 10px; font-size: 13px; } .tblview summary { cursor: pointer; color: var(--ink-2); font-size: 12.5px; }
+.tblview table { border-collapse: collapse; margin-top: 8px; font-variant-numeric: tabular-nums; min-width: 260px; }
+.tblview th, .tblview td { border-bottom: 1px solid var(--grid); padding: 4px 10px; text-align: right; } .tblview th:nth-child(2), .tblview td:nth-child(2) { text-align: left; }
+.tblview tr.hl td { font-weight: 700; color: var(--accent-ink); }
+table.rb { width: 100%; border-collapse: collapse; font-size: 13px; } table.rb td, table.rb th { border-bottom: 1px solid var(--grid); padding: 6px 4px; text-align: left; vertical-align: top; }
+table.rb th { font-weight: 600; color: var(--ink-2); font-size: 12px; } table.rb td.r { white-space: nowrap; font-weight: 600; }
+table.rb .sw { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 5px; }
+.ok { color: var(--good-ink); } .warn { color: var(--accent-ink); }
+.brk { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: var(--ink-2); margin: 8px 0 0; }
+.brk i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; margin-right: 5px; }
+.rec .n { font-size: 12px; font-weight: 800; color: var(--accent-ink); letter-spacing: .06em; }
+.rec h3 { font-size: 16px; margin: 2px 0 6px; } .rec p { font-size: 13.5px; margin: 0 0 6px; color: var(--ink-2); } .rec p b { color: var(--ink); }
+.bottomline { margin: 16px 0 0; font-size: 17px; font-weight: 700; line-height: 1.55; border-left: 3px solid var(--accent); padding-left: 14px; max-width: 860px; }
+.stack { display: grid; gap: 12px; align-content: start; }
+noscript p { background: var(--surface-2); padding: 12px; border-radius: 8px; }
+@page { size: A4; margin: 11mm 10mm; }
+@media print {
+  html, body { background: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { zoom: .6; }
+  nav.toc, .tip, #theme, .tblview { display: none !important; }
+  .viz * { animation: none !important; } .tile { box-shadow: none; }
+  .grid2 { grid-template-columns: 1fr 1fr !important; } .grid2.g-strata { grid-template-columns: 1.25fr 1fr !important; } .grid3 { grid-template-columns: repeat(3, 1fr) !important; }
+  .hero { grid-template-columns: 1.15fr 2fr !important; } .sim { grid-template-columns: 1fr 1.2fr !important; } .tiles { grid-template-columns: repeat(4, 1fr) !important; } .creds { grid-template-columns: repeat(4, 1fr) !important; } .plans { grid-template-columns: 1fr 1fr !important; } .fx { grid-template-columns: repeat(4, 1fr) !important; } .plan { break-inside: avoid; } .hero-grid { grid-template-columns: 1.05fr 1fr !important; }
+  .card, .tile, .hero-main, .res, details.method { break-inside: avoid; }
+  section { padding-top: 26px; } #s3, #s4, #s5, #s6, #s7, #s8 { break-before: page; padding-top: 0; }
+  h2, .sec-no, .sec-lede { break-after: avoid; }
+}
+</style>
+</head>
+<body>
+<noscript><div class="wrap"><p>이 페이지의 차트는 자바스크립트로 그려집니다. 브라우저에서 자바스크립트를 켜 주세요.</p></div></noscript>
+<header class="hero-band">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">2026 대구광역시 기후·환경·탄소중립 공공데이터 AI 활용대회 · 부문2 공공데이터 분석·시각화</div>
+      <h1>덜 버리는데, <em>가장 많이 묻는</em> 도시</h1>
+      <p class="lede">대구 시민은 전국 평균보다 쓰레기를 적게 버립니다. 그런데 매립률은 17개 시도 중 가장 높습니다. 2024년 생활폐기물 통계를 구·군 단위까지 분석해 원인을 찾고, <b>2030년 생활폐기물 직매립 금지</b>까지 남은 3년 동안 무엇을 얼마나 줄여야 하는지 계산했습니다.</p>
+      <div class="hero-num">
+        <div class="big" id="h-land">26.8%</div>
+        <div class="side"><b>대구 생활폐기물 매립률</b><br><span id="h-land-cmp"></span></div>
+      </div>
+    </div>
+    <div>
+      <div class="map-cap"><b>17개 시도 생활폐기물 매립률 (2024)</b><span>개략 배치도 · 실제 경계 아님</span></div>
+      <div class="viz" id="hero-map"></div>
+      <div class="ramp-leg"><span>0%</span><i></i><span id="hero-max"></span></div>
+    </div>
+  </div>
+  <svg class="hero-waves" viewBox="0 0 1200 58" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0,22 C150,6 300,36 480,20 S820,4 1000,22 1150,30 1200,18 V58 H0Z" fill="#5a4636"/>
+    <path d="M0,36 C180,22 340,48 520,34 S860,20 1040,36 1160,42 1200,32 V58 H0Z" fill="#8a6f58"/>
+    <path d="M0,48 C200,38 380,56 560,46 S900,38 1080,48 1170,52 1200,46 V58 H0Z" fill="var(--page)"/>
+  </svg>
+</header>
+<div class="wrap"><div class="tiles" id="tiles"></div>
+  <ul class="creds" aria-label="이 작품의 데이터와 분석 방법">
+    <li><b>대구·국가 공공데이터 7종</b>대구광역시 생활폐기물 처리, 전국 폐기물 발생 및 처리현황 6개 표</li>
+    <li><b>AI 분석 모델 3종</b>K-means 군집, 계층적 군집, 주성분 분석</li>
+    <li><b>수치 검증 95개 전부 일치</b>원자료에서 다른 계산 경로로 다시 대조</li>
+    <li><b>계산식과 한계 공개</b>견고성 점검, 추정치와 실측치 구분</li>
+  </ul></div>
+
+<nav class="toc" aria-label="목차"><div class="wrap">
+  <a href="#s1">① 전국 비교</a><a href="#s2">② 쓰레기의 길</a><a href="#s3">③ AI 유형 분석</a><a href="#s4">④ 매립지 속</a><a href="#sc">⑤ 탄소중립</a><a href="#s5">⑥ 구·군 진단</a><a href="#s6">⑦ 2030 시뮬레이터</a><a href="#sm">⑧ 우리 동네</a><a href="#s7">⑨ 제언</a><a href="#s8">⑩ 방법·출처</a>
+  <span class="sp"></span><button id="theme" type="button" aria-label="화면 테마 전환">다크 모드</button>
+</div></nav>
+
+<main class="wrap">
+  <section id="s1">
+    <div class="sec-no">01 · 전국 비교</div>
+    <h2>지표마다 순위가 엇갈립니다</h2>
+    <p class="sec-lede">발생량은 평균보다 적지만, 매립률·종량제 매립률·잔재물률은 1위이고 물질재활용률은 하위권입니다. 문제는 <b>얼마나 버리느냐</b>가 아니라 <b>어떻게 버리고 어떻게 처리하느냐</b>에 있습니다.</p>
+    <div class="card">
+      <h3>여섯 지표에서 대구가 서 있는 자리</h3>
+      <p class="sub">한 줄이 한 지표입니다. 회색 점은 다른 16개 시도, 큰 점이 대구입니다. 왼쪽이 낮은 값, 오른쪽이 높은 값입니다. 줄을 누르면 아래 차트가 그 지표로 바뀝니다.</p>
+      <div class="viz" id="strips"></div>
+      <ul class="legend" style="margin-top:10px"><li><i style="background:var(--c-land);border-radius:50%"></i>대구(불리한 위치)</li><li><i style="background:var(--c-mat);border-radius:50%"></i>대구(유리한 위치)</li><li><i style="background:var(--ink-3);opacity:.45;border-radius:50%"></i>다른 시도</li></ul>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="seg" role="group" aria-label="비교 지표" id="metric-seg"></div>
+      <h3 id="rank-title"></h3>
+      <p class="sub" id="rank-sub"></p>
+      <div class="viz" id="rank"></div>
+      <p class="note">막대 색이 짙을수록 값이 큽니다. 테두리가 있는 막대가 대구, 세로선은 전국 평균입니다.</p>
+      <details class="tblview"><summary>표로 보기</summary><div class="scroll-x" id="rank-table"></div></details>
+    </div>
+  </section>
+
+  <section id="s2">
+    <div class="sec-no">02 · 쓰레기의 길</div>
+    <h2>종량제봉투의 절반은 그대로 땅에 묻힙니다</h2>
+    <p class="sec-lede">대구에서 1년간 나온 생활폐기물 75.6만 t이 어떤 방식으로 배출되어 어디로 가는지 따라갔습니다. 종량제봉투로 나온 40.2만 t 가운데 <b>20.0만 t(49.8%)</b>이 매립되었습니다.</p>
+    <div class="card">
+      <h3>배출 방식 → 처리 방법 (대구, 2024)</h3>
+      <p class="sub">띠의 굵기가 톤수입니다. 띠에 마우스를 올리면 그 흐름만 또렷해집니다. 가장 굵은 붉은 띠가 종량제봉투에서 매립지로 가는 20.0만 t입니다.</p>
+      <div class="scroll-x"><div class="viz" id="sankey" style="min-width:560px"></div></div>
+      <p class="cap-note swipe-hint">화면이 좁으면 그림을 옆으로 밀어 볼 수 있습니다.</p>
+    </div>
+    <div class="grid2" style="margin-top:16px">
+      <div class="card">
+        <h3>처리 방법 구성: 대구 vs 전국</h3>
+        <p class="sub">대구는 에너지회수 비중이 전국 1위입니다. 하지만 물질재활용은 절반 수준이고 매립은 2.7배입니다.</p>
+        <ul class="legend" id="treat-legend"></ul>
+        <div class="viz" id="stack-cmp"></div>
+      </div>
+      <div class="card">
+        <h3>대구 배출 방식별 처리 구성</h3>
+        <p class="sub">분리배출된 재활용품과 음식물은 대부분 재활용됩니다. 종량제봉투만 절반이 매립됩니다.</p>
+        <ul class="legend" id="treat-legend2"></ul>
+        <div class="viz" id="stack-stream"></div>
+      </div>
+    </div>
+    <p class="note" style="margin-top:12px">에너지회수에는 SRF(고형연료) 제조와 바이오가스화 등이 포함됩니다(통계 분류 기준). <span id="csv-note"></span></p>
+  </section>
+
+  <section id="s3">
+    <div class="sec-no">03 · AI 유형 분석</div>
+    <h2>머신러닝으로 묶어 보니, 대구는 혼자였습니다</h2>
+    <p class="sec-lede">17개 시도를 처리 구조 5개 지표(물질재활용률·에너지회수율·소각률·매립률·잔재물률)로 표준화한 뒤 <b>K-means 군집 분석</b>을 했습니다. 대구는 어느 시도와도 같은 군집으로 묶이지 않았습니다. 대구와 가장 닮은 시도까지의 거리도 다른 시도들의 약 2배입니다.</p>
+    <div class="grid2" style="align-items:start">
+      <div class="card">
+        <h3>17개 시도 처리 구조 지도 (주성분 분석 2차원 투영)</h3>
+        <p class="sub" id="pca-sub"></p>
+        <ul class="legend" id="cl-legend"></ul>
+        <div class="viz" id="scatter"></div>
+      </div>
+      <div class="stack">
+        <div class="card">
+          <h3>대구의 처리 구조는 모양부터 다릅니다</h3>
+          <p class="sub">각 축은 0%부터 17개 시도 최댓값까지입니다. 대구는 매립·에너지회수·잔재물 쪽으로 뾰족하고, 물질재활용·소각 쪽이 움푹합니다.</p>
+          <ul class="legend" id="radar-legend"></ul>
+          <div class="viz" id="radar"></div>
+          <details class="tblview"><summary>군집별 평균 표로 보기</summary><div class="scroll-x" id="cl-cards"></div></details>
+        </div>
+        <div class="card">
+          <h3>가장 닮은 시도까지의 거리</h3>
+          <p class="sub">표준화한 5개 지표 공간에서 잰 최근접 거리(상위 6개 시도). 클수록 닮은 곳이 없다는 뜻입니다.</p>
+          <div class="viz" id="nn"></div>
+        </div>
+      </div>
+    </div>
+    <div class="grid2" style="margin-top:16px;align-items:start">
+      <div class="card">
+        <h3>다른 AI 모델로 다시 확인: 계층적 군집</h3>
+        <p class="sub" id="dendro-sub"></p>
+        <div class="viz" id="dendro"></div>
+      </div>
+      <div class="card">
+        <h3>이 결과는 얼마나 믿을 만한가</h3>
+        <p class="sub">분석 조건을 바꿔도 대구가 단독 군집으로 남는지 확인했습니다(견고성 점검).</p>
+        <div class="stack" id="robust"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="s4">
+    <div class="sec-no">04 · 매립지 속</div>
+    <h2>매립된 20만 t, 무엇이 묻혔나</h2>
+    <p class="sec-lede">대구가 2024년 한 해에 묻은 20.2만 t을 땅속 단면처럼 쌓아 봤습니다. <b>4분의 1은 공사장생활폐기물</b>(인테리어·소규모 공사 폐기물)이고, <b>3분의 1 이상은 분리배출했다면 재활용할 수 있었던 종이·플라스틱·금속·유리</b>입니다.</p>
+    <div class="grid2 g-strata" style="align-items:start">
+      <div class="card">
+        <h3>대구 매립지 단면: 층의 두께가 톤수입니다</h3>
+        <p class="sub">층에 마우스를 올리면 얼마나 매립되었는지 보입니다.</p>
+        <div class="viz" id="landstrata"></div>
+        <details class="tblview"><summary>성분별 막대 차트로 보기</summary><div class="viz" id="landlist" style="margin-top:10px"></div></details>
+      </div>
+      <div class="stack">
+        <div class="card">
+          <h3>종량제봉투 100칸 중 43칸은 재활용 가능 품목</h3>
+          <p class="sub">종량제봉투로 배출된 40.2만 t을 100칸으로 나눴습니다(대구 전체 성상).</p>
+          <div class="viz" id="bagwaffle"></div>
+          <ul class="legend" id="bag-legend" style="margin-top:10px"></ul>
+        </div>
+        <div class="card">
+          <div class="insight" style="margin-top:0" id="bag-insight"></div>
+          <div class="insight" style="border-color:var(--c-inc)" id="con-insight"></div>
+          <p class="note">종량제봉투 성상은 폐기물 통계의 추정 구성비로, 구·군별로 거의 같은 비율이 적용되어 있습니다. 따라서 대구 전체 값으로만 해석했습니다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="sc">
+    <div class="sec-no">05 · 탄소중립</div>
+    <h2>묻힌 종이가 메탄이 됩니다</h2>
+    <p class="sec-lede">대구시는 2030년까지 온실가스를 2018년보다 45% 줄이고 2050년 탄소중립을 이루는 것을 목표로 합니다(제1차 대구광역시 탄소중립 녹색성장 기본계획). 매립지에서는 종이·음식물 같은 유기물이 썩으면서 이산화탄소보다 온실효과가 28배 큰 <b>메탄</b>이 나옵니다. 2024년 한 해에 묻은 유기물이 앞으로 수십 년 동안 낼 수 있는 메탄을 계산했습니다.</p>
+    <div class="grid2" style="align-items:start">
+      <div class="card">
+        <h3>2024년 매립분의 메탄 발생 잠재량</h3>
+        <p class="sub">종량제봉투로 매립된 유기물 5종 기준, 이산화탄소 환산량(상한 추정)</p>
+        <div class="bignum" id="ch4-total"></div>
+        <div class="viz" id="ch4-bars" style="margin-top:14px"></div>
+        <p class="note">IPCC 2006 지침 기본값으로 계산했습니다. 매립가스 회수를 반영하지 않은 상한값입니다. 대구는 방천리 위생매립장에서 매립가스를 모아 연료로 쓰는 사업을 하고 있어 실제 배출량은 이보다 적습니다.</p>
+      </div>
+      <div class="stack">
+        <div class="card">
+          <h3 id="ch4-paper-title"></h3>
+          <p class="sub">종이는 분해되면서 메탄을 많이 만듭니다. 그런데 종이는 분리배출만 하면 재활용이 가장 쉬운 품목입니다.</p>
+          <div class="meter2" id="ch4-meter"></div>
+          <div class="insight" id="ch4-insight"></div>
+        </div>
+        <div class="card">
+          <h3>매립을 소각으로만 바꾸면 안 되는 이유</h3>
+          <p style="margin:0;font-size:14px;color:var(--ink-2)">플라스틱은 묻어도 메탄이 거의 나오지 않지만, 태우면 석유에서 온 탄소가 이산화탄소로 나옵니다. 2030년 직매립 금지에 맞춰 매립 물량을 소각으로만 돌리면 온실가스가 늘 수 있습니다. 그래서 <b style="color:var(--ink)">먼저 분리배출과 물질재활용으로 물량을 줄이고, 남는 양만 처리시설로 보내는 순서</b>가 탄소중립에 맞습니다.</p>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h3>대구시 계획: 폐기물 부문 온실가스를 2030년까지 30% 줄여야 합니다</h3>
+      <p class="sub">「제1차 대구광역시 탄소중립 녹색성장 기본계획」의 중장기 감축 목표(표 4-1, 190~191쪽). 단위는 이산화탄소 환산량(tCO₂eq)</p>
+      <div class="grid2" style="align-items:center">
+        <div class="viz" id="plan-bars"></div>
+        <p style="margin:0;font-size:14px;color:var(--ink-2)" id="plan-txt"></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="s5">
+    <div class="sec-no">06 · 구·군 진단</div>
+    <h2>같은 대구 안에서도 처방이 달라야 합니다</h2>
+    <p class="sec-lede">지표를 고르면 9개 구·군의 값이 지도에 칠해집니다. 구·군마다 문제가 생기는 지점이 다릅니다.</p>
+    <div class="grid2" style="align-items:start">
+      <div class="card">
+        <div class="seg" role="group" aria-label="구·군 지표" id="gu-seg"></div>
+        <h3 id="gu-title"></h3>
+        <p class="sub" id="gu-sub"></p>
+        <div class="viz" id="gumap"></div>
+        <div class="ramp-leg"><span id="gu-min"></span><i id="gu-ramp"></i><span id="gu-max"></span></div>
+        <p class="cap-note">개략 배치도입니다. 실제 행정구역 경계나 면적과 다릅니다.</p>
+      </div>
+      <div class="stack" id="gu-rx"></div>
+    </div>
+    <div class="card pb-print" style="margin-top:16px">
+      <h3>구·군 진단표</h3>
+      <p class="sub">대구 전체 값과 비교해 <span style="color:var(--accent-ink);font-weight:600">붉을수록 개선이 필요</span>하고, <span style="color:var(--k1);font-weight:600">푸를수록 양호</span>합니다.</p>
+      <div class="scroll-x"><div id="heat"></div></div>
+      <div class="divlegend"><span>양호</span><span class="ramp"></span><span>개선 필요</span><span style="margin-left:12px;color:var(--muted)">기준: 대구 전체 값</span></div>
+    </div>
+  </section>
+
+  <section id="s6">
+    <div class="sec-no">07 · 2030 시뮬레이터</div>
+    <h2>직매립 금지까지 3년, 얼마나 줄일 수 있을까</h2>
+    <p class="sec-lede">2030년부터 수도권 밖에서도 종량제 생활폐기물을 바로 묻을 수 없습니다. 세 가지 시민·제도 수단을 조절해 매립량과 물질재활용률, 온실가스(메탄 잠재량)가 어떻게 바뀌는지 확인해 보세요.</p>
+    <div class="sim">
+      <div class="card">
+        <div class="presets" role="group" aria-label="시나리오 프리셋">
+          <button type="button" data-p="0,0,0,20.9">현재</button><button type="button" data-p="20,30,30,15">보수적</button><button type="button" data-p="30,50,50,11.3">목표(권장)</button><button type="button" data-p="50,80,70,8">도전적</button>
+        </div>
+        <div class="ctl"><label for="a">봉투 속 재활용품 분리배출 전환 <output id="ao"></output></label>
+          <p>종량제봉투에 섞인 종이·플라스틱·금속·유리(17.4만 t) 중 분리배출로 옮겨오는 비율</p><input type="range" id="a" min="0" max="60" step="5" value="30"></div>
+        <div class="ctl"><label for="b">공사장생활폐기물 별도 선별 <output id="bo"></output></label>
+          <p>매립되는 공사장생활폐기물(5.1만 t)을 별도 수거·선별해 순환골재 등으로 재활용하는 비율</p><input type="range" id="b" min="0" max="80" step="5" value="50"></div>
+        <div class="ctl"><label for="c">봉투 속 음식물 혼입 감소 <output id="co"></output></label>
+          <p>종량제봉투에 섞여 매립되는 음식물(1.1만 t) 감소율</p><input type="range" id="c" min="0" max="80" step="5" value="50"></div>
+        <div class="ctl"><label for="r">분리배출 잔재물률 목표 <output id="ro"></output></label>
+          <p>현재 20.9%(전국 1위) → 전국 평균 11.3%</p><input type="range" id="r" min="5" max="20.9" step="0.1" value="11.3"></div>
+        <div class="dayg">
+          <div class="lab"><span>종량제 쓰레기 하루 직매립 물량</span><span><b id="dg-now"></b> t / 일</span></div>
+          <div class="track" role="img" aria-label="하루 직매립 물량"><div class="fill" id="dg-fill"></div></div>
+          <div class="ends"><span>0 (2030년 목표)</span><span id="dg-max"></span></div>
+          <p id="dg-txt"></p>
+        </div>
+      </div>
+      <div class="card">
+        <h3>연간 매립량이 줄어드는 과정</h3>
+        <p class="sub">현재 매립량에서 수단별 감축량을 차례로 뺀 결과입니다 (t/년)</p>
+        <div class="viz" id="simbar"></div>
+        <div class="brk" id="simbrk" aria-live="polite"></div>
+        <div class="res-grid">
+          <div class="res"><div class="lab">매립률</div><div class="val" id="r-land"></div><div class="cmp" id="r-land-c"></div></div>
+          <div class="res"><div class="lab">물질재활용률</div><div class="val" id="r-mat"></div><div class="cmp" id="r-mat-c"></div></div>
+          <div class="res"><div class="lab">매립 메탄 잠재 감축</div><div class="val" id="r-ghg"></div><div class="cmp">IPCC 2006 Tier1 기본값 추정</div></div>
+          <div class="res"><div class="lab">매립 감축량</div><div class="val" id="r-cut"></div><div class="cmp" id="r-cut-c"></div></div>
+        </div>
+        <div class="callout" id="r-call"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="sm">
+    <div class="sec-no">08 · 우리 동네, 우리 집</div>
+    <h2>내가 사는 곳은 어떨까</h2>
+    <p class="sec-lede">사는 구·군과 가구원 수를 고르면, 우리 동네가 대구 안에서 어디쯤인지와 우리 집 종량제봉투 속을 계산해 보여 줍니다.</p>
+    <div class="card mine-ctl">
+      <div><label for="mine-gu">사는 곳</label><select id="mine-gu"></select></div>
+      <div class="rng"><label for="mine-n">가구원 수</label><input type="range" id="mine-n" min="1" max="6" step="1" value="3"><output id="mine-no"></output></div>
+    </div>
+    <div class="grid2" style="align-items:start">
+      <div class="card">
+        <h3 id="mine-title"></h3>
+        <p class="sub" id="mine-type"></p>
+        <div class="viz" id="mine-strips"></div>
+        <p class="note">회색 점은 다른 구·군, 세로선은 대구 전체 값입니다. 왼쪽이 낮은 값, 오른쪽이 높은 값입니다.</p>
+      </div>
+      <div class="card">
+        <h3 id="hh-title"></h3>
+        <p class="sub">우리 동네 1인당 평균 배출량에 가구원 수를 곱한 추정값입니다(공사장생활폐기물 제외).</p>
+        <div class="bignum" id="hh-total" style="color:var(--ink)"></div>
+        <div class="hh-seg" id="hh-seg" role="img" aria-label="우리 집 종량제봉투 구성"></div>
+        <ul class="legend" id="hh-legend"></ul>
+        <ul class="hh-list" id="hh-list"></ul>
+        <p class="note">봉투 속 구성비는 대구 전체 성상 추정치를 적용했습니다. 실제 값은 가구마다 다릅니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="s7">
+    <div class="sec-no">09 · 제언</div>
+    <h2>개선 방안과 기대 효과</h2>
+    <p class="sec-lede">분석에서 드러난 문제마다 개선 방안을 붙이고, 대구시 탄소중립 기본계획의 어느 과제와 이어지는지, 실행하면 무엇이 얼마나 달라지는지 정리했습니다. 효과 수치는 목표 시나리오 기준입니다.</p>
+    <div class="card">
+      <h3>기대 효과 한눈에 보기</h3>
+      <p class="sub">아래 네 가지 개선 방안을 목표 수준으로 실행했을 때의 변화 (2024년 실적 대비)</p>
+      <div class="fx" id="fx"></div>
+    </div>
+    <div class="plans" id="plans"></div>
+    <div class="grid2" style="margin-top:16px;align-items:start">
+      <div class="card">
+        <h3>줄여도 남는 물량, 그리고 지금의 소각 용량</h3>
+        <p class="sub">2030년부터 바로 묻을 수 없게 되는 종량제 쓰레기와 소각 시설 규모를 하루 톤수로 비교했습니다.</p>
+        <div class="viz" id="cap-bars"></div>
+        <p class="note" id="cap-note"></p>
+      </div>
+      <div class="card">
+        <h3>언제 무엇을: 실행 단계 제안</h3>
+        <p class="sub">직매립 금지 시행(2030년 1월)에서 거꾸로 계산한 일정입니다.</p>
+        <ul class="steps">
+          <li><b class="y">2027</b><span><b class="t">시범</b>북구·달서구에서 공사장생활폐기물 별도 수거 시범. 잔재물률이 높은 구에 분리배출 안내 서비스 시범. 구·군 성적표 첫 공개</span></li>
+          <li><b class="y">2028</b><span><b class="t">확대</b>전 구·군으로 확대. 공동주택 단지별 품질 피드백 시작. 시범 결과로 시뮬레이터의 달성률 가정을 보정</span></li>
+          <li><b class="y">2029</b><span><b class="t">점검</b>남는 직매립 물량을 다시 계산해 필요한 처리 용량을 확정. 성과 지표 중간 점검</span></li>
+          <li class="fin"><b class="y">2030</b><span><b class="t">직매립 금지 시행</b>종량제 쓰레기는 선별·소각을 거친 뒤에만 매립. 성과 지표 공개</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h3>정책으로 옮길 때의 성과 지표</h3>
+      <p class="sub">모두 매년 공개되는 같은 통계로 확인할 수 있는 지표입니다. 2030년 값은 목표 시나리오 기준입니다.</p>
+      <div class="scroll-x"><table class="kpi" id="kpi"></table></div>
+    </div>
+    <p class="bottomline" id="bottomline"></p>
+  </section>
+
+  <section id="s8">
+    <div class="sec-no">10 · 방법·출처</div>
+    <h2>데이터, AI 활용, 한계</h2>
+    <details class="method" open><summary>사용한 공공데이터</summary>
+      <div class="scroll-x"><table><tr><th>데이터</th><th>제공·출처</th><th>이용 조건</th><th>활용</th></tr>
+      <tr><td>대구광역시_생활폐기물 처리_20241231 (CSV)</td><td>대구광역시 자원순환과 · <a href="https://www.data.go.kr/data/15130913/fileData.do" target="_blank" rel="noopener">공공데이터포털</a></td><td>공공누리 제1유형(출처표시)</td><td>배출 방식별 처리 구조, 대구 총량 교차 검증</td></tr>
+      <tr><td>전국 폐기물 발생 및 처리현황(2024년 실적) 2-가-1, 2-나-1 생활(가정)폐기물 발생량</td><td>기후에너지환경부·한국환경공단 · <a href="https://www.recycling-info.or.kr/sds/ntnProcessIndex.do?menuNo=M130309" target="_blank" rel="noopener">자원순환마루(자원순환정보시스템)</a> 통계 DB화 서비스</td><td rowspan="3">같은 자료가 공공데이터포털에 <a href="https://www.data.go.kr/data/3070174/fileData.do" target="_blank" rel="noopener">「한국환경공단_폐기물배출및처리현황」</a>으로 개방되어 있으며 이용허락범위 제한 없음. 출처 표시</td><td>시도 비교, 구·군 지표, 종량제 성상, 매립 성분</td></tr>
+      <tr><td>〃 1-가, 1-나 생활폐기물관리구역현황</td><td>〃</td><td>인구(1인당 지표의 분모)</td></tr>
+      <tr><td>〃 4-가-1, 4-나-1 생활폐기물관리예산</td><td>〃</td><td>예산 대비 수수료 비율(참고 지표)</td></tr></table></div>
+      <p>원자료의 수치는 바꾸지 않았고, 비율·1인당 값·합계만 계산했습니다. 모든 수치는 2024년 실적이며, 1인당 지표는 366일(윤년)로 나눴습니다.</p>
+      <p><b>데이터 품질 점검</b> ① 인구는 시도 표와 구·군 표의 대구 합계가 일치하는 2024년 파일만 사용했습니다(코드에서 자동 검사). ② <span id="csv-note2"></span></p>
+    </details>
+    <details class="method" open><summary>AI·분석 방법</summary>
+      <ul>
+        <li><b>K-means 군집 분석</b>(scikit-learn): 17개 시도 × 처리 구조 5개 지표를 표준화(z-score)했습니다. 1인당 발생량은 처리 구조가 아닌 발생 규모 지표이고 제주가 극단값이어서 뺐습니다. 군집 수는 대구가 분리되는 가장 단순한 값인 k=3을 썼고, 초기값을 200회 반복해 결과를 고정했습니다. 시각화에는 주성분 분석(PCA) 2차원 투영을 썼습니다.</li>
+        <li><b>계층적 군집</b>(SciPy): 17개 시도 덴드로그램(평균 연결법)과 대구 8개 구·군 유형 분류에 썼습니다. 구·군은 1인당 발생량·물질재활용률·종량제 매립률·잔재물률 4개 지표를 표준화했고, Ward 연결과 평균 연결이 같은 4개 유형을 냈습니다(군위군은 잔재물 자료가 없어 제외).</li>
+        <li><b>견고성 점검</b>: 군집 수(k=3~6), 초기값 50회, 계층적 군집 3종(Ward·평균·완전 연결), 지표 1개 제외 조건에서 대구의 단독 분리가 유지되는지 확인했습니다. 실루엣 점수가 0.24~0.26으로 높지 않아, 최근접 거리를 보조 근거로 함께 제시했습니다.</li>
+        <li><b>메탄 잠재량</b>: IPCC 2006 지침 Tier1 질량수지 방식으로 계산했습니다. CH₄ = 매립량 × DOC × DOCf(0.5) × MCF(1.0) × F(0.5) × 16/12 × (1−OX 0.1), GWP 28(AR5). DOC는 종이 0.40, 음식물 0.15를 썼습니다. 매립가스 회수는 반영하지 않아 <b>상한 추정치</b>입니다.</li>
+        <li><b>시나리오</b>: 매립 감축 = 전환율 × 해당 성분의 현재 매립량. 물질재활용 증가분에는 목표 잔재물률을 적용했고, 공사장생활폐기물은 선별 후 80%를 재활용한다고 가정했습니다.</li>
+        <li><b>생성형 AI</b>: 데이터 구조 파악, 분석 코드 작성, 문장 다듬기에 사용했습니다. 모든 수치는 원자료에서 코드로 직접 계산했으며, 프롬프트 내역은 붙임4에 제출합니다.</li>
+      </ul>
+    </details>
+    <details class="method" open><summary>참고 자료</summary>
+      <ul class="refs">
+        <li>대구시 온실가스 감축 목표와 폐기물 부문 목표, 순환경제 부문 과제: 대구광역시, 「제1차 대구광역시 탄소중립 녹색성장 기본계획」(2024~2033), 187쪽·190~191쪽·210~211쪽. <a href="https://www.pcccr.go.kr/base/board/read?boardManagementNo=60&boardNo=3505&menuLevel=2&menuNo=96" target="_blank" rel="noopener">국가기후위기대응위원회 누리집 게시본</a></li>
+        <li>생활폐기물 직매립 금지(수도권 2026년, 그 외 지역 2030년): 「폐기물관리법 시행규칙」 2021년 7월 개정</li>
+        <li>메탄 계산 기본값: IPCC, 2006 IPCC Guidelines for National Greenhouse Gas Inventories, Volume 5 Waste</li>
+      </ul>
+    </details>
+    <details class="method" open><summary>한계와 주의</summary>
+      <ul>
+        <li>종량제봉투 성상은 통계상 추정 구성비입니다. 구·군 간 차이는 해석하지 않았습니다.</li>
+        <li>구·군별 매립률 차이에는 시민 행동뿐 아니라 처리시설 배분(어느 시설로 반입되는가)도 반영됩니다.</li>
+        <li>단년도(2024) 자료여서 추세 분석은 하지 않았습니다. 연도별 자료를 더하면 2030 경로 예측으로 확장할 수 있습니다.</li>
+      </ul>
+    </details>
+  </section>
+</main>
+<footer class="wrap">데이터: 대구광역시, 기후에너지환경부·한국환경공단 「전국 폐기물 발생 및 처리현황」(2024년 실적). 글꼴: Pretendard(SIL OFL). 분석 코드: build_all.py · 분석·제작: 황보예린</footer>
+
+<script>
+window.DATA={"sido": [{"pop": 52705155, "total": 17045554.3, "kgDay": 0.88, "mat": 46.8, "energy": 13.0, "incin": 29.9, "land": 9.9, "landT": 1681451.6, "mixT": 8430183.8, "mixShare": 49.5, "mixLand": 19.2, "sepT": 4130075.2, "sepPerCap": 78.4, "foodPerCap": 85.1, "residue": 11.3, "residueT": 466351.1, "foodMat": 77.8, "constrT": 433808.0, "constrLandT": 133353.7, "constrLandShare": 7.9, "name": "전국", "budgetPerTon": 527, "feeRatio": 19.8}, {"pop": 9597029, "total": 2893575.5, "kgDay": 0.82, "mat": 58.2, "energy": 3.5, "incin": 30.9, "land": 7.4, "landT": 213433.8, "mixT": 1256746.0, "mixShare": 43.4, "mixLand": 17.0, "sepT": 839446.3, "sepPerCap": 87.5, "foodPerCap": 83.1, "residue": 17.0, "residueT": 142632.8, "foodMat": 98.8, "constrT": 4700.6, "constrLandT": 170.2, "constrLandShare": 0.1, "name": "서울", "budgetPerTon": 601, "feeRatio": 22.6, "cluster": 1, "pcx": -0.347, "pcy": 0.801}, {"pop": 3322403, "total": 914926.4, "kgDay": 0.75, "mat": 57.3, "energy": 26.2, "incin": 13.7, "land": 2.8, "landT": 25297.9, "mixT": 463824.1, "mixShare": 50.7, "mixLand": 5.5, "sepT": 223791.1, "sepPerCap": 67.4, "foodPerCap": 68.4, "residue": 2.0, "residueT": 4417.4, "foodMat": 71.7, "constrT": 140441.0, "constrLandT": 0.0, "constrLandShare": 0.0, "name": "부산", "budgetPerTon": 553, "feeRatio": 19.7, "cluster": 0, "pcx": -2.495, "pcy": -1.547}, {"pop": 2400339, "total": 755965.7, "kgDay": 0.86, "mat": 24.5, "energy": 36.7, "incin": 12.0, "land": 26.8, "landT": 202229.8, "mixT": 402454.9, "mixShare": 53.2, "mixLand": 49.8, "sepT": 153040.2, "sepPerCap": 63.8, "foodPerCap": 83.5, "residue": 20.9, "residueT": 31968.8, "foodMat": 34.7, "constrT": 51328.4, "constrLandT": 51117.9, "constrLandShare": 25.3, "name": "대구", "budgetPerTon": 572, "feeRatio": 18.0, "cluster": 2, "pcx": 3.2, "pcy": -2.792}, {"pop": 3110139, "total": 860321.3, "kgDay": 0.76, "mat": 55.7, "energy": 6.9, "incin": 28.5, "land": 8.9, "landT": 76295.4, "mixT": 385938.6, "mixShare": 44.9, "mixLand": 19.6, "sepT": 254091.1, "sepPerCap": 81.7, "foodPerCap": 70.8, "residue": 9.6, "residueT": 24424.4, "foodMat": 99.6, "constrT": 1330.7, "constrLandT": 79.7, "constrLandShare": 0.1, "name": "인천", "budgetPerTon": 701, "feeRatio": 24.3, "cluster": 0, "pcx": -0.933, "pcy": 0.421}, {"pop": 1434979, "total": 469198.8, "kgDay": 0.89, "mat": 60.0, "energy": 28.5, "incin": 2.6, "land": 7.5, "landT": 35201.0, "mixT": 181496.0, "mixShare": 38.7, "mixLand": 19.4, "sepT": 136851.2, "sepPerCap": 95.4, "foodPerCap": 105.1, "residue": 9.1, "residueT": 12497.2, "foodMat": 100.0, "constrT": 147.1, "constrLandT": 26.5, "constrLandShare": 0.1, "name": "광주", "budgetPerTon": 389, "feeRatio": 29.2, "cluster": 0, "pcx": -1.551, "pcy": -2.546}, {"pop": 1465406, "total": 487592.8, "kgDay": 0.91, "mat": 43.6, "energy": 24.7, "incin": 19.2, "land": 12.0, "landT": 58653.9, "mixT": 230595.5, "mixShare": 47.3, "mixLand": 25.4, "sepT": 117081.3, "sepPerCap": 79.9, "foodPerCap": 95.5, "residue": 10.9, "residueT": 12737.3, "foodMat": 72.5, "constrT": 14873.9, "constrLandT": 14735.3, "constrLandShare": 25.1, "name": "대전", "budgetPerTon": 644, "feeRatio": 20.6, "cluster": 0, "pcx": -0.019, "pcy": -1.284}, {"pop": 1125691, "total": 347921.2, "kgDay": 0.84, "mat": 23.5, "energy": 24.9, "incin": 45.1, "land": 6.6, "landT": 22790.2, "mixT": 173761.2, "mixShare": 49.9, "mixLand": 13.1, "sepT": 81857.4, "sepPerCap": 72.7, "foodPerCap": 82.0, "residue": 8.9, "residueT": 7267.1, "foodMat": 7.5, "constrT": 10418.0, "constrLandT": 10398.5, "constrLandShare": 45.6, "name": "울산", "budgetPerTon": 604, "feeRatio": 28.1, "cluster": 1, "pcx": 0.526, "pcy": 0.622}, {"pop": 396867, "total": 108101.6, "kgDay": 0.74, "mat": 40.3, "energy": 14.7, "incin": 44.9, "land": 0.0, "landT": 0.0, "mixT": 64048.4, "mixShare": 59.2, "mixLand": 0.0, "sepT": 26938.9, "sepPerCap": 67.9, "foodPerCap": 43.1, "residue": 2.9, "residueT": 793.4, "foodMat": 97.3, "constrT": 50.2, "constrLandT": 0.0, "constrLandShare": null, "name": "세종", "budgetPerTon": 572, "feeRatio": 14.0, "cluster": 0, "pcx": -1.516, "pcy": 1.329}, {"pop": 14162083, "total": 4337886.0, "kgDay": 0.84, "mat": 50.6, "energy": 11.8, "incin": 30.4, "land": 6.3, "landT": 272661.9, "mixT": 2150826.0, "mixShare": 49.6, "mixLand": 12.5, "sepT": 1052788.8, "sepPerCap": 74.3, "foodPerCap": 80.1, "residue": 8.0, "residueT": 84009.1, "foodMat": 83.1, "constrT": 144354.1, "constrLandT": 2384.8, "constrLandShare": 0.9, "name": "경기", "budgetPerTon": 482, "feeRatio": 19.1, "cluster": 0, "pcx": -1.061, "pcy": 0.346}, {"pop": 1543840, "total": 619079.5, "kgDay": 1.1, "mat": 38.8, "energy": 11.5, "incin": 31.2, "land": 15.5, "landT": 95783.7, "mixT": 341460.0, "mixShare": 55.2, "mixLand": 25.5, "sepT": 130249.1, "sepPerCap": 84.4, "foodPerCap": 95.5, "residue": 16.4, "residueT": 21339.3, "foodMat": 54.3, "constrT": 14297.9, "constrLandT": 14128.1, "constrLandShare": 14.8, "name": "강원", "budgetPerTon": 576, "feeRatio": 14.8, "cluster": 1, "pcx": 1.224, "pcy": 0.23}, {"pop": 1647478, "total": 618585.6, "kgDay": 1.03, "mat": 39.5, "energy": 6.2, "incin": 44.2, "land": 9.5, "landT": 59029.2, "mixT": 353536.2, "mixShare": 57.2, "mixLand": 16.0, "sepT": 119196.2, "sepPerCap": 72.4, "foodPerCap": 88.5, "residue": 10.5, "residueT": 12486.5, "foodMat": 71.6, "constrT": 1018.2, "constrLandT": 814.6, "constrLandShare": 1.4, "name": "충북", "budgetPerTon": 451, "feeRatio": 19.2, "cluster": 1, "pcx": 0.153, "pcy": 1.546}, {"pop": 2233261, "total": 811484.8, "kgDay": 0.99, "mat": 38.7, "energy": 2.3, "incin": 46.0, "land": 13.0, "landT": 105455.4, "mixT": 479358.3, "mixShare": 59.1, "mixLand": 21.5, "sepT": 129807.2, "sepPerCap": 58.1, "foodPerCap": 90.6, "residue": 15.7, "residueT": 20402.8, "foodMat": 90.7, "constrT": 9545.5, "constrLandT": 400.9, "constrLandShare": 0.4, "name": "충남", "budgetPerTon": 457, "feeRatio": 16.3, "cluster": 1, "pcx": 1.075, "pcy": 1.802}, {"pop": 1782409, "total": 621947.5, "kgDay": 0.95, "mat": 36.0, "energy": 15.9, "incin": 39.5, "land": 8.5, "landT": 53148.9, "mixT": 309408.5, "mixShare": 49.7, "mixLand": 16.2, "sepT": 108704.1, "sepPerCap": 61.0, "foodPerCap": 114.4, "residue": 17.4, "residueT": 18886.3, "foodMat": 56.9, "constrT": 312.5, "constrLandT": 127.7, "constrLandShare": 0.2, "name": "전북", "budgetPerTon": 504, "feeRatio": 14.0, "cluster": 1, "pcx": 0.957, "pcy": 0.684}, {"pop": 1846008, "total": 685678.2, "kgDay": 1.01, "mat": 41.0, "energy": 7.3, "incin": 26.3, "land": 24.0, "landT": 164676.5, "mixT": 362650.1, "mixShare": 52.9, "mixLand": 38.2, "sepT": 119278.4, "sepPerCap": 64.6, "foodPerCap": 110.4, "residue": 9.2, "residueT": 10987.8, "foodMat": 75.0, "constrT": 9791.9, "constrLandT": 9575.6, "constrLandShare": 5.8, "name": "전남", "budgetPerTon": 413, "feeRatio": 15.1, "cluster": 1, "pcx": 0.997, "pcy": -0.065}, {"pop": 2608152, "total": 940672.7, "kgDay": 0.99, "mat": 31.8, "energy": 23.6, "incin": 35.6, "land": 8.7, "landT": 82120.0, "mixT": 561161.7, "mixShare": 59.7, "mixLand": 13.8, "sepT": 145821.6, "sepPerCap": 55.9, "foodPerCap": 89.6, "residue": 10.9, "residueT": 15962.4, "foodMat": 63.4, "constrT": 3113.8, "constrLandT": 1428.0, "constrLandShare": 1.7, "name": "경북", "budgetPerTon": 571, "feeRatio": 12.4, "cluster": 1, "pcx": 0.43, "pcy": -0.011}, {"pop": 3330713, "total": 1130858.6, "kgDay": 0.93, "mat": 40.6, "energy": 7.8, "incin": 33.4, "land": 18.2, "landT": 205680.7, "mixT": 580951.4, "mixShare": 51.4, "mixLand": 33.7, "sepT": 243483.1, "sepPerCap": 73.1, "foodPerCap": 92.0, "residue": 16.5, "residueT": 40231.5, "foodMat": 73.7, "constrT": 26158.2, "constrLandT": 26039.9, "constrLandShare": 12.7, "name": "경남", "budgetPerTon": 439, "feeRatio": 21.7, "cluster": 1, "pcx": 1.394, "pcy": 0.504}, {"pop": 698358, "total": 441758.1, "kgDay": 1.73, "mat": 49.6, "energy": 19.0, "incin": 29.3, "land": 2.0, "landT": 8993.3, "mixT": 131966.9, "mixShare": 29.9, "mixLand": 6.0, "sepT": 247649.2, "sepPerCap": 354.6, "foodPerCap": 89.0, "residue": 2.1, "residueT": 5307.0, "foodMat": 32.5, "constrT": 1926.0, "constrLandT": 1926.0, "constrLandShare": 21.4, "name": "제주", "budgetPerTon": 479, "feeRatio": 22.7, "cluster": 0, "pcx": -2.033, "pcy": -0.04}], "gu": [{"pop": 98673, "total": 39078.0, "kgDay": 1.08, "mat": 11.0, "energy": 55.0, "incin": 8.9, "land": 25.1, "landT": 9816.8, "mixT": 21823.8, "mixShare": 55.8, "mixLand": 45.0, "sepT": 6747.4, "sepPerCap": 68.4, "foodPerCap": 106.5, "residue": 18.1, "residueT": 1220.1, "foodMat": 40.9, "constrT": 2475.7, "constrLandT": 2464.0, "constrLandShare": 25.1, "name": "중구", "budget": 25311054.0, "budgetPerTon": 648, "feeRatio": 14.2}, {"pop": 344413, "total": 107050.5, "kgDay": 0.85, "mat": 26.3, "energy": 44.8, "incin": 8.2, "land": 20.7, "landT": 22208.6, "mixT": 56588.1, "mixShare": 52.9, "mixLand": 38.5, "sepT": 22120.8, "sepPerCap": 64.2, "foodPerCap": 82.3, "residue": 26.7, "residueT": 5896.8, "foodMat": 42.1, "constrT": 6779.4, "constrLandT": 6745.6, "constrLandShare": 30.4, "name": "동구", "budget": 34342986.0, "budgetPerTon": 321, "feeRatio": 24.4}, {"pop": 165811, "total": 52737.6, "kgDay": 0.87, "mat": 13.2, "energy": 41.7, "incin": 15.0, "land": 30.0, "landT": 15845.0, "mixT": 32881.2, "mixShare": 62.3, "mixLand": 48.2, "sepT": 7958.2, "sepPerCap": 48.0, "foodPerCap": 71.8, "residue": 28.3, "residueT": 2249.2, "foodMat": 10.6, "constrT": 2625.5, "constrLandT": 2608.9, "constrLandShare": 16.5, "name": "서구", "budget": 26237386.0, "budgetPerTon": 498, "feeRatio": 17.7}, {"pop": 138328, "total": 41584.0, "kgDay": 0.82, "mat": 17.1, "energy": 43.3, "incin": 12.5, "land": 26.4, "landT": 10992.0, "mixT": 26095.0, "mixShare": 62.8, "mixLand": 41.5, "sepT": 6466.4, "sepPerCap": 46.7, "foodPerCap": 65.2, "residue": 23.2, "residueT": 1497.9, "foodMat": 23.8, "constrT": 2229.2, "constrLandT": 2214.4, "constrLandShare": 20.1, "name": "남구", "budget": 22967149.0, "budgetPerTon": 552, "feeRatio": 15.5}, {"pop": 419508, "total": 131290.9, "kgDay": 0.86, "mat": 23.6, "energy": 34.7, "incin": 9.8, "land": 31.9, "landT": 41941.0, "mixT": 67631.0, "mixShare": 51.5, "mixLand": 62.0, "sepT": 26947.3, "sepPerCap": 64.2, "foodPerCap": 87.5, "residue": 21.1, "residueT": 5695.7, "foodMat": 26.3, "constrT": 9230.9, "constrLandT": 9205.9, "constrLandShare": 21.9, "name": "북구", "budget": 55801098.0, "budgetPerTon": 425, "feeRatio": 17.3}, {"pop": 410800, "total": 125332.2, "kgDay": 0.83, "mat": 27.6, "energy": 37.2, "incin": 13.5, "land": 21.7, "landT": 27150.7, "mixT": 62315.8, "mixShare": 49.7, "mixLand": 43.6, "sepT": 27488.3, "sepPerCap": 66.9, "foodPerCap": 86.5, "residue": 26.3, "residueT": 7217.6, "foodMat": 40.3, "constrT": 11399.3, "constrLandT": 11352.1, "constrLandShare": 41.8, "name": "수성구", "budget": 50421711.0, "budgetPerTon": 402, "feeRatio": 22.3}, {"pop": 534782, "total": 165411.4, "kgDay": 0.85, "mat": 26.8, "energy": 27.4, "incin": 14.3, "land": 31.6, "landT": 52280.8, "mixT": 86280.8, "mixShare": 52.2, "mixLand": 59.5, "sepT": 35192.8, "sepPerCap": 65.8, "foodPerCap": 82.2, "residue": 17.9, "residueT": 6298.4, "foodMat": 34.0, "constrT": 12922.4, "constrLandT": 12887.4, "constrLandShare": 24.7, "name": "달서구", "budget": 60529391.0, "budgetPerTon": 366, "feeRatio": 23.5}, {"pop": 264979, "total": 85416.1, "kgDay": 0.88, "mat": 31.7, "energy": 34.9, "incin": 11.1, "land": 22.3, "landT": 19019.3, "mixT": 43417.9, "mixShare": 50.8, "mixLand": 43.1, "sepT": 18392.7, "sepPerCap": 69.4, "foodPerCap": 89.1, "residue": 10.3, "residueT": 1893.1, "foodMat": 44.9, "constrT": 3660.7, "constrLandT": 3636.7, "constrLandShare": 19.1, "name": "달성군", "budget": 32986330.0, "budgetPerTon": 386, "feeRatio": 22.4}, {"pop": 23045, "total": 8065.0, "kgDay": 0.96, "mat": 25.2, "energy": 7.6, "incin": 30.3, "land": 36.9, "landT": 2975.6, "mixT": 5421.3, "mixShare": 67.2, "mixLand": 54.9, "sepT": 1726.3, "sepPerCap": 74.9, "foodPerCap": 39.8, "residue": 0.0, "residueT": 0.0, "foodMat": 33.0, "constrT": 5.3, "constrLandT": 2.9, "constrLandShare": 0.1, "name": "군위군", "budget": 7214717.0, "budgetPerTon": 895, "feeRatio": 3.6}], "flows": {"종량제(혼합)": {"gen": 402454.9, "rec": 116791.1, "mat": 0.0, "en": 116791.1, "inc": 85295.5, "land": 200368.3, "etc": 0.0}, "재활용품 분리배출": {"gen": 153040.2, "rec": 145513.9, "mat": 115982.7, "en": 29531.2, "inc": 5381.8, "land": 1861.5, "etc": 283.0}, "음식물 분리배출": {"gen": 200470.6, "rec": 200470.6, "mat": 69479.2, "en": 130991.4, "inc": 0.0, "land": 0.0, "etc": 0.0}}, "mixItems": [{"group": "가연성", "item": "폐지류", "gen": 60884.1, "land": 25879.6, "inc": 14773.1, "en": 20231.4}, {"group": "가연성", "item": "폐합성수지류", "gen": 99979.0, "land": 42497.2, "inc": 24259.3, "en": 33222.5}, {"group": "가연성", "item": "음식물류 폐기물", "gen": 24860.5, "land": 10567.2, "inc": 6032.2, "en": 8261.1}, {"group": "가연성", "item": "폐섬유류", "gen": 11944.9, "land": 5077.2, "inc": 2898.5, "en": 3969.2}, {"group": "가연성", "item": "폐목재류", "gen": 5732.4, "land": 2436.5, "inc": 1391.0, "en": 1904.9}, {"group": "가연성", "item": "폐고무류", "gen": 4668.2, "land": 1984.3, "inc": 1132.7, "en": 1551.2}, {"group": "가연성", "item": "기타", "gen": 105756.6, "land": 44953.0, "inc": 25661.2, "en": 35142.4}, {"group": "불연성", "item": "폐금속류", "gen": 4553.2, "land": 1935.3, "inc": 1104.8, "en": 1513.1}, {"group": "불연성", "item": "폐유리류", "gen": 9082.0, "land": 3860.5, "inc": 2203.7, "en": 3017.8}, {"group": "불연성", "item": "폐토사류", "gen": 1010.4, "land": 429.6, "inc": 245.1, "en": 335.7}, {"group": "불연성", "item": "폐타일 및 도자기류", "gen": 677.2, "land": 287.9, "inc": 164.3, "en": 225.0}, {"group": "불연성", "item": "연탄재", "gen": 15.4, "land": 6.6, "inc": 3.7, "en": 5.1}, {"group": "불연성", "item": "기타", "gen": 21962.6, "land": 9335.5, "inc": 5329.0, "en": 7298.1}, {"group": "건설폐재류", "item": "건설폐재류(공사장생활폐기물)", "gen": 51328.4, "land": 51117.9, "inc": 96.9, "en": 113.6}], "sepItems": [{"item": "폐지류(종이팩)", "gen": 67.5}, {"item": "폐지류(기타)", "gen": 48824.8}, {"item": "고철류", "gen": 1293.3}, {"item": "금속캔", "gen": 2513.0}, {"item": "폐합성수지류(비닐류)", "gen": 16253.0}, {"item": "폐합성수지류(발포수지류)", "gen": 2271.5}, {"item": "폐합성수지류(PET병)", "gen": 9007.9}, {"item": "폐합성수지류(기타)", "gen": 11782.4}, {"item": "폐유리병류", "gen": 15452.9}, {"item": "폐의류", "gen": 4743.4}, {"item": "조명폐기물", "gen": 93.8}, {"item": "폐전지류", "gen": 275.5}, {"item": "영농폐기물(농약용기류)", "gen": 22.4}, {"item": "영농폐기물(폐비닐)", "gen": 1930.5}, {"item": "폐전기전자제품", "gen": 5413.8}, {"item": "폐가구류", "gen": 955.3}, {"item": "기타", "gen": 170.4}, {"item": "재활용 잔재물", "gen": 31968.8}], "ipcc": {"params": {"DOC": {"폐지류": 0.4, "음식물류 폐기물": 0.15, "폐섬유류": 0.24, "폐목재류": 0.43, "폐고무류": 0.39}, "DOCf": 0.5, "MCF": 1.0, "F": 0.5, "OX": 0.1, "GWP": 28}, "efPerTon": {"폐지류": 3.36, "음식물류 폐기물": 1.26, "폐섬유류": 2.016, "폐목재류": 3.612, "폐고무류": 3.276}, "ghgNowMixLand": 125807}, "cluster": {"k": 3, "scan": [{"k": 2, "silhouette": 0.235, "daeguAlone": false, "labels": {"서울": 1, "부산": 1, "대구": 0, "인천": 1, "광주": 1, "대전": 1, "울산": 0, "세종": 1, "경기": 1, "강원": 0, "충북": 0, "충남": 0, "전북": 0, "전남": 0, "경북": 0, "경남": 0, "제주": 1}}, {"k": 3, "silhouette": 0.239, "daeguAlone": true, "labels": {"서울": 1, "부산": 0, "대구": 2, "인천": 0, "광주": 0, "대전": 0, "울산": 1, "세종": 0, "경기": 0, "강원": 1, "충북": 1, "충남": 1, "전북": 1, "전남": 1, "경북": 1, "경남": 1, "제주": 0}}, {"k": 4, "silhouette": 0.245, "daeguAlone": true, "labels": {"서울": 1, "부산": 2, "대구": 3, "인천": 1, "광주": 2, "대전": 2, "울산": 0, "세종": 0, "경기": 1, "강원": 1, "충북": 1, "충남": 1, "전북": 1, "전남": 1, "경북": 0, "경남": 1, "제주": 2}}, {"k": 5, "silhouette": 0.244, "daeguAlone": true, "labels": {"서울": 1, "부산": 2, "대구": 4, "인천": 1, "광주": 2, "대전": 2, "울산": 0, "세종": 0, "경기": 1, "강원": 3, "충북": 3, "충남": 3, "전북": 3, "전남": 3, "경북": 0, "경남": 3, "제주": 2}}, {"k": 6, "silhouette": 0.26, "daeguAlone": true, "labels": {"서울": 5, "부산": 1, "대구": 2, "인천": 5, "광주": 1, "대전": 1, "울산": 4, "세종": 0, "경기": 5, "강원": 3, "충북": 3, "충남": 3, "전북": 4, "전남": 3, "경북": 4, "경남": 3, "제주": 0}}], "features": ["mat", "energy", "incin", "land", "residue"], "centers": [{"id": 0, "members": ["부산", "인천", "광주", "대전", "세종", "경기", "제주"], "mean": {"mat": 51.0, "energy": 18.8, "incin": 24.1, "land": 5.6, "residue": 6.4}}, {"id": 1, "members": ["서울", "울산", "강원", "충북", "충남", "전북", "전남", "경북", "경남"], "mean": {"mat": 38.7, "energy": 11.4, "incin": 36.9, "land": 12.4, "residue": 13.6}}, {"id": 2, "members": ["대구"], "mean": {"mat": 24.5, "energy": 36.7, "incin": 12.0, "land": 26.8, "residue": 20.9}}], "pcaVar": [0.405, 0.327], "pcaLoadings": {"mat": [-0.52, -0.1], "energy": [0.0, -0.64], "incin": [0.11, 0.73], "land": [0.6, -0.22], "residue": [0.6, -0.01]}, "robust": {"kmeansAloneByK": {"2": false, "3": true, "4": true, "5": true, "6": true}, "seedsAlone": {"3": 47, "4": 50}, "hierarchical": {"ward": {"3": true, "4": true}, "average": {"3": true, "4": true}, "complete": {"3": true, "4": true}}, "leaveOneFeatureOut": {"mat": false, "energy": false, "incin": true, "land": false, "residue": true}, "nearestNeighbor": [{"name": "대구", "dist": 3.58, "nearest": "대전"}, {"name": "대전", "dist": 1.81, "nearest": "경북"}, {"name": "광주", "dist": 1.76, "nearest": "부산"}, {"name": "전남", "dist": 1.68, "nearest": "경남"}, {"name": "부산", "dist": 1.65, "nearest": "제주"}, {"name": "세종", "dist": 1.64, "nearest": "제주"}, {"name": "서울", "dist": 1.45, "nearest": "인천"}, {"name": "제주", "dist": 1.45, "nearest": "경기"}, {"name": "전북", "dist": 1.33, "nearest": "강원"}, {"name": "울산", "dist": 1.2, "nearest": "경북"}, {"name": "경북", "dist": 1.2, "nearest": "울산"}, {"name": "충북", "dist": 1.16, "nearest": "충남"}, {"name": "충남", "dist": 1.16, "nearest": "충북"}, {"name": "인천", "dist": 0.85, "nearest": "경기"}, {"name": "경기", "dist": 0.85, "nearest": "인천"}, {"name": "강원", "dist": 0.59, "nearest": "경남"}, {"name": "경남", "dist": 0.59, "nearest": "강원"}], "centroidDist": [{"name": "대구", "dist": 4.28}, {"name": "광주", "dist": 3.1}, {"name": "부산", "dist": 2.95}, {"name": "울산", "dist": 2.47}, {"name": "세종", "dist": 2.45}, {"name": "서울", "dist": 2.25}, {"name": "전남", "dist": 2.18}, {"name": "충남", "dist": 2.16}, {"name": "제주", "dist": 2.15}, {"name": "경남", "dist": 1.74}, {"name": "충북", "dist": 1.57}, {"name": "인천", "dist": 1.56}, {"name": "전북", "dist": 1.56}, {"name": "경북", "dist": 1.4}, {"name": "강원", "dist": 1.36}, {"name": "대전", "dist": 1.29}, {"name": "경기", "dist": 1.17}], "daeguZ": {"mat": -1.72, "energy": 2.13, "incin": -1.49, "land": 2.32, "residue": 1.81}}}, "daeguCsv": [{"종류": "총발생량", "총발생량": 755965.7, "종량제방식 등 혼합배출": 402454.9, "재활용 가능자원 분리배출": 153040.2, "음식물류 폐기물 분리배출": 200470.6}, {"종류": "재활용", "총발생량": 462775.6, "종량제방식 등 혼합배출": 116791.1, "재활용 가능자원 분리배출": 145513.9, "음식물류 폐기물 분리배출": 200470.6}, {"종류": "소각", "총발생량": 90667.3, "종량제방식 등 혼합배출": 85295.5, "재활용 가능자원 분리배출": 5381.8, "음식물류 폐기물 분리배출": 0.0}, {"종류": "매립", "총발생량": 202229.8, "종량제방식 등 혼합배출": 200368.3, "재활용 가능자원 분리배출": 1861.5, "음식물류 폐기물 분리배출": 0.0}, {"종류": "기타", "총발생량": 283.0, "종량제방식 등 혼합배출": 0.0, "재활용 가능자원 분리배출": 283.0, "음식물류 폐기물 분리배출": 0.0}], "csvCheck": [{"item": "총발생량", "csvTotal": 755965.7, "csvSum": 755965.7, "stat": 755965.7}, {"item": "재활용", "csvTotal": 462775.6, "csvSum": 462775.6, "stat": 462775.6}, {"item": "소각", "csvTotal": 90667.3, "csvSum": 90677.3, "stat": 90677.3}, {"item": "매립", "csvTotal": 202229.8, "csvSum": 202229.8, "stat": 202229.8}, {"item": "기타", "csvTotal": 283.0, "csvSum": 283.0, "stat": 283.0}], "dendro": {"method": "average", "labels": ["대구", "대전", "부산", "광주", "전남", "충북", "충남", "전북", "강원", "경남", "서울", "인천", "경기", "울산", "경북", "세종", "제주"], "icoord": [[25.0, 25.0, 35.0, 35.0], [15.0, 15.0, 30.0, 30.0], [55.0, 55.0, 65.0, 65.0], [85.0, 85.0, 95.0, 95.0], [75.0, 75.0, 90.0, 90.0], [60.0, 60.0, 82.5, 82.5], [115.0, 115.0, 125.0, 125.0], [105.0, 105.0, 120.0, 120.0], [71.25, 71.25, 112.5, 112.5], [45.0, 45.0, 91.88, 91.88], [135.0, 135.0, 145.0, 145.0], [155.0, 155.0, 165.0, 165.0], [140.0, 140.0, 160.0, 160.0], [68.44, 68.44, 150.0, 150.0], [22.5, 22.5, 109.22, 109.22], [5.0, 5.0, 65.86, 65.86]], "dcoord": [[0.0, 1.759, 1.759, 0.0], [0.0, 2.353, 2.353, 1.759], [0.0, 1.16, 1.16, 0.0], [0.0, 0.593, 0.593, 0.0], [0.0, 1.536, 1.536, 0.593], [1.16, 1.679, 1.679, 1.536], [0.0, 0.852, 0.852, 0.0], [0.0, 1.723, 1.723, 0.852], [1.679, 2.353, 2.353, 1.723], [0.0, 2.537, 2.537, 2.353], [0.0, 1.205, 1.205, 0.0], [0.0, 1.642, 1.642, 0.0], [1.205, 2.632, 2.632, 1.642], [2.537, 2.984, 2.984, 2.632], [2.353, 3.438, 3.438, 2.984], [0.0, 4.912, 4.912, 3.438]], "daeguMergeStep": 16, "steps": 16, "daeguHeight": 4.91, "prevMaxHeight": 3.44, "wardMergeStep": 15}, "guCluster": {"features": ["kgDay", "mat", "mixLand", "residue"], "k": 4, "ward": [["남구", "동구", "서구", "수성구"], ["달서구", "북구"], ["달성군"], ["중구"]], "average": [["남구", "동구", "서구", "수성구"], ["달서구", "북구"], ["달성군"], ["중구"]], "agree": true}, "methane": [{"item": "폐지류", "land": 25879.6, "co2e": 86955}, {"item": "음식물류 폐기물", "land": 10567.2, "co2e": 13315}, {"item": "폐섬유류", "land": 5077.2, "co2e": 10236}, {"item": "폐목재류", "land": 2436.5, "co2e": 8801}, {"item": "폐고무류", "land": 1984.3, "co2e": 6501}], "publicProc": {"rec": 294215.7, "mat": 34177.2, "en": 260038.5, "inc": 85295.5, "land": 201738.5}};
+</script>
+<script>
+/* 대구 생활폐기물 분석 - 공통 차트 모듈 (의존성 없음, SVG) */
+(function () {
+  const NS = 'http://www.w3.org/2000/svg';
+  const fmt = (v, d = 0) => (v == null ? '–' : Number(v).toLocaleString('ko-KR', { maximumFractionDigits: d, minimumFractionDigits: d }));
+  const fmtT = v => v >= 10000 ? fmt(v / 10000, 1) + '만 t' : fmt(v) + ' t';
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+  function el(tag, attrs = {}, parent) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) if (attrs[k] != null) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function txt(parent, x, y, s, attrs = {}) { const t = el('text', Object.assign({ x, y }, attrs), parent); t.textContent = s; return t; }
+  function svgFor(host, w, h, label) {
+    host.innerHTML = '';
+    const s = el('svg', { viewBox: `0 0 ${w} ${h}`, role: 'img', 'aria-label': label || '' }, host);
+    return s;
+  }
+  /* 한쪽만 둥근 막대: 기준선 쪽은 각지게, 끝은 4px 라운드 */
+  function barPath(x, y, w, h, r = 4) {
+    if (w <= 0) return '';
+    r = Math.min(r, w, h / 2);
+    return `M${x},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h - r}Q${x + w},${y + h} ${x + w - r},${y + h}H${x}Z`;
+  }
+  function textWidth(s, size = 11) { let w = 0; for (const c of String(s)) w += /[ㄱ-힝]/.test(c) ? size * 0.95 : size * 0.58; return w; }
+
+  /* ---------- 툴팁 ---------- */
+  let tipEl;
+  function tip() { if (!tipEl) { tipEl = document.createElement('div'); tipEl.className = 'tip'; tipEl.setAttribute('role', 'tooltip'); document.body.appendChild(tipEl); } return tipEl; }
+  function bindTip(node, html) {
+    const show = e => { const t = tip(); t.innerHTML = typeof html === 'function' ? html() : html; t.style.opacity = 1; move(e); };
+    const move = e => { const t = tip(); const pad = 14; let x = e.clientX + pad, y = e.clientY + pad;
+      const r = t.getBoundingClientRect(); if (x + r.width > innerWidth - 8) x = e.clientX - r.width - pad; if (y + r.height > innerHeight - 8) y = e.clientY - r.height - pad;
+      t.style.left = x + 'px'; t.style.top = y + 'px'; };
+    node.addEventListener('mouseenter', show); node.addEventListener('mousemove', move);
+    node.addEventListener('mouseleave', () => { tip().style.opacity = 0; });
+    node.setAttribute('tabindex', '0');
+    node.addEventListener('focus', () => { const b = node.getBoundingClientRect(); show({ clientX: b.left + b.width / 2, clientY: b.top }); });
+    node.addEventListener('blur', () => { tip().style.opacity = 0; });
+  }
+
+  /* ---------- 1. 순위 막대 (대구 강조 + 전국 기준선) ---------- */
+  function rankBars(host, o) {
+    const items = o.items.filter(d => d.name !== o.ref && d.value != null).sort((a, b) => o.asc ? a.value - b.value : b.value - a.value);
+    const refV = (o.items.find(d => d.name === o.ref) || {}).value;
+    const W = o.width || host.clientWidth || 560, rowH = o.rowH || 22, top = 22, left = 44, right = 56;
+    const H = top + items.length * rowH + 8;
+    const s = svgFor(host, W, H, o.label);
+    const max = o.max || Math.max(...items.map(d => d.value), refV || 0) * 1.05;
+    const X = v => left + (W - left - right) * v / max;
+    // 그리드 + 눈금
+    const ticks = o.ticks || niceTicks(max, 4);
+    ticks.forEach(t => { el('line', { x1: X(t), x2: X(t), y1: top - 4, y2: H - 6, class: 'grid' }, s); txt(s, X(t), 12, fmt(t, o.tickDec || 0) + (o.tickUnit || ''), { class: 't-muted', 'text-anchor': 'middle' }); });
+    el('line', { x1: left, x2: left, y1: top - 4, y2: H - 6, class: 'axis' }, s);
+    items.forEach((d, i) => {
+      const y = top + i * rowH, bh = Math.min(14, rowH - 6), hl = d.name === o.highlight;
+      const g = el('g', { class: 'row' }, s);
+      txt(g, left - 8, y + bh / 2 + 4, d.name, { 'text-anchor': 'end', class: hl ? 't-strong' : '' });
+      el('path', { d: barPath(left, y, X(d.value) - left, bh), fill: o.ramp ? o.ramp(d.value) : (hl ? (o.color || 'var(--accent)') : 'var(--other)'), class: 'mark', style: `animation-delay:${i * 18}ms`,
+        stroke: o.ramp && hl ? 'var(--ink)' : null, 'stroke-width': o.ramp && hl ? 1.5 : null }, g);
+      if (hl || i === 0 || (o.labelAll)) txt(g, X(d.value) + 6, y + bh / 2 + 4, fmt(d.value, o.dec ?? 1) + (o.unit || ''), { class: hl ? 't-strong' : '' });
+      const hit = el('rect', { x: 0, y: y - 3, width: W, height: rowH, class: 'hit' }, g);
+      bindTip(hit, `<b>${d.name}</b> ${fmt(d.value, o.dec ?? 1)}${o.unit || ''}<br><span class="k">${o.metricName || ''}${o.noRank ? '' : ' · 17개 시도 중 ' + (i + 1) + '위'}</span>` + (refV != null ? `<br><span class="k">전국 ${fmt(refV, o.dec ?? 1)}${o.unit || ''}</span>` : ''));
+    });
+    if (refV != null) {
+      const x = X(refV);
+      el('line', { x1: x, x2: x, y1: top - 6, y2: H - 4, stroke: 'var(--ink-2)', 'stroke-width': 1.5, 'stroke-dasharray': '0' }, s);
+      const lbl = `전국 ${fmt(refV, o.dec ?? 1)}${o.unit || ''}`;
+      el('rect', { x: x + 4, y: H - 22, width: textWidth(lbl) + 8, height: 16, rx: 3, fill: 'var(--surface)' }, s);
+      txt(s, x + 8, H - 10, lbl, { class: 't-strong', 'font-size': 11 });
+    }
+    return s;
+  }
+  function niceTicks(max, n) {
+    const raw = max / n, p = Math.pow(10, Math.floor(Math.log10(raw))), m = raw / p;
+    const step = (m < 1.5 ? 1 : m < 3 ? 2 : m < 7 ? 5 : 10) * p; const out = [];
+    for (let v = 0; v <= max + 1e-9; v += step) out.push(+v.toFixed(6)); return out;
+  }
+
+  /* ---------- 2. 100% 누적 막대 ---------- */
+  const TREAT = [['mat', '물질재활용', '--c-mat', false], ['en', '에너지회수', '--c-en', true], ['inc', '소각', '--c-inc', false], ['land', '매립', '--c-land', false]];
+  function stack100(host, o) {
+    const W = o.width || host.clientWidth || 560, rowH = o.rowH || 44, bh = 28, left = o.left || 92, top = 4;
+    const H = top + o.rows.length * rowH;
+    const s = svgFor(host, W, H, o.label);
+    const span = W - left - 8;
+    o.rows.forEach((r, i) => {
+      const y = top + i * rowH, tot = TREAT.reduce((a, [k]) => a + (r[k] || 0), 0);
+      txt(s, left - 10, y + bh / 2 + 4, r.name, { 'text-anchor': 'end', class: r.strong ? 't-strong' : '' });
+      if (r.sub) txt(s, left - 10, y + bh / 2 + 18, r.sub, { 'text-anchor': 'end', class: 't-muted', 'font-size': 10 });
+      let x = left;
+      TREAT.forEach(([k, name, c, darkText], j) => {
+        const v = r[k] || 0; if (v <= 0) return; const w = span * v / tot; const gap = 2;
+        const first = x === left, last = Math.abs(x + w - (left + span)) < 0.5;
+        const rx = 4;
+        const g = el('g', {}, s);
+        el('rect', { x: x + (first ? 0 : gap / 2), y, width: Math.max(0, w - (first || last ? gap / 2 : gap)), height: bh, rx: (first || last) ? rx : 0, fill: `var(${c})` }, g);
+        const p = v / tot * 100, lab = fmt(p, 0) + '%';
+        if (w - 8 > textWidth(lab, 11) + 6) txt(g, x + 7, y + bh / 2 + 4, lab, { class: darkText ? 't-in-dark' : 't-in' });
+        bindTip(g, `<b>${r.name}</b><br><span class="sw" style="background:var(${c})"></span>${name} <b>${fmt(p, 1)}%</b><br><span class="k">${fmtT(v)}</span>`);
+        x += w;
+      });
+    });
+    return s;
+  }
+  function treatLegend(host) {
+    host.innerHTML = TREAT.map(([, n, c]) => `<li><i style="background:var(${c})"></i>${n}</li>`).join('');
+  }
+
+  /* ---------- 3. 생키(배출방식 → 처리방법) ---------- */
+  function sankey(host, o) {
+    const W = o.width || host.clientWidth || 640, H = o.height || 300, nodeW = 12, padY = 14, lx = o.left || 120, rx = W - (o.right || 150);
+    const s = svgFor(host, W, H, o.label);
+    const src = Object.keys(o.flows), tgt = TREAT.map(t => t[0]);
+    const total = src.reduce((a, k) => a + o.flows[k].gen, 0);
+    const scale = (H - padY * (src.length - 1)) / total, scaleR = (H - padY * (tgt.length - 1)) / total;
+    let y = 0; const sn = {};
+    src.forEach(k => { const h = o.flows[k].gen * scale; sn[k] = { y, h, off: 0 }; y += h + padY; });
+    y = 0; const tn = {};
+    tgt.forEach(k => { const v = src.reduce((a, s2) => a + (o.flows[s2][k] || 0), 0); const h = v * scaleR; tn[k] = { y, h, v, off: 0 }; y += h + padY; });
+    // 링크 (fancy: 왼쪽은 옅게, 오른쪽으로 갈수록 처리방법 색이 짙어지는 그라데이션 + 흐름선)
+    const gid = 'sk' + Math.random().toString(36).slice(2, 7);
+    if (o.fancy) {
+      const defs = el('defs', {}, s);
+      TREAT.forEach(([k, , c]) => { const g = el('linearGradient', { id: `${gid}-${k}`, x1: 0, x2: 1, y1: 0, y2: 0 }, defs);
+        el('stop', { offset: '0%', style: `stop-color:var(${c});stop-opacity:${k === 'land' ? .22 : .12}` }, g);
+        el('stop', { offset: '100%', style: `stop-color:var(${c});stop-opacity:${k === 'land' ? .78 : .5}` }, g); });
+    }
+    const flowLines = [];
+    src.forEach(sk => tgt.forEach(tk => {
+      const v = o.flows[sk][tk] || 0; if (v <= 0) return;
+      const h1 = v * scale, h2 = v * scaleR;
+      const y1 = sn[sk].y + sn[sk].off, y2 = tn[tk].y + tn[tk].off; sn[sk].off += h1; tn[tk].off += h2;
+      const x1 = lx + nodeW, x2 = rx, cx = (x1 + x2) / 2;
+      const c = TREAT.find(t => t[0] === tk)[2];
+      const base = tk === 'land' ? 0.42 : 0.2;
+      const p = el('path', Object.assign({ d: `M${x1},${y1}C${cx},${y1} ${cx},${y2} ${x2},${y2}V${y2 + h2}C${cx},${y2 + h2} ${cx},${y1 + h1} ${x1},${y1 + h1}Z` },
+        o.fancy ? { fill: `url(#${gid}-${tk})`, class: 'ribbon' } : { fill: `var(${c})`, 'fill-opacity': base }), s);
+      const tname = TREAT.find(t => t[0] === tk)[1];
+      bindTip(p, `<b>${sk} → ${tname}</b><br>${fmtT(v)}<br><span class="k">${sk}의 ${fmt(v / o.flows[sk].gen * 100, 1)}%</span>`);
+      if (!o.fancy) { p.addEventListener('mouseenter', () => p.setAttribute('fill-opacity', 0.65)); p.addEventListener('mouseleave', () => p.setAttribute('fill-opacity', base)); }
+      if (o.fancy && Math.min(h1, h2) > 5) flowLines.push({ d: `M${x1},${y1 + h1 / 2}C${cx},${y1 + h1 / 2} ${cx},${y2 + h2 / 2} ${x2},${y2 + h2 / 2}`, w: Math.min(3, Math.max(1.2, Math.min(h1, h2) / 14)) });
+    }));
+    flowLines.forEach(fl => el('path', { d: fl.d, fill: 'none', class: 'flow', 'stroke-width': fl.w, 'pointer-events': 'none' }, s));
+    src.forEach(k => {
+      const n = sn[k]; el('rect', { x: lx, y: n.y, width: nodeW, height: n.h, rx: 2, fill: 'var(--ink-3)' }, s);
+      txt(s, lx - 8, n.y + n.h / 2 - 2, k, { 'text-anchor': 'end', class: 't-strong' });
+      txt(s, lx - 8, n.y + n.h / 2 + 13, fmtT(o.flows[k].gen), { 'text-anchor': 'end', class: 't-muted' });
+    });
+    tgt.forEach(k => {
+      const n = tn[k], t = TREAT.find(x => x[0] === k);
+      el('rect', { x: rx, y: n.y, width: nodeW, height: Math.max(n.h, 2), rx: 2, fill: `var(${t[2]})` }, s);
+      txt(s, rx + nodeW + 8, n.y + n.h / 2 - 2, t[1], { class: 't-strong' });
+      txt(s, rx + nodeW + 8, n.y + n.h / 2 + 13, `${fmtT(n.v)} · ${fmt(n.v / total * 100, 1)}%`, { class: 't-muted' });
+    });
+    return s;
+  }
+
+  /* ---------- 4. PCA 산점도 (군집) ---------- */
+  function scatter(host, o) {
+    const W = o.width || host.clientWidth || 560, H = o.height || 360, m = { l: 28, r: 20, t: 16, b: 34 };
+    const s = svgFor(host, W, H, o.label);
+    const xs = o.points.map(p => p.x), ys = o.points.map(p => p.y);
+    const x0 = Math.min(...xs) - .6, x1 = Math.max(...xs) + .6, y0 = Math.min(...ys) - .6, y1 = Math.max(...ys) + .6;
+    const X = v => m.l + (W - m.l - m.r) * (v - x0) / (x1 - x0), Y = v => H - m.b - (H - m.t - m.b) * (v - y0) / (y1 - y0);
+    el('line', { x1: X(0), x2: X(0), y1: m.t, y2: H - m.b, class: 'grid' }, s);
+    el('line', { x1: m.l, x2: W - m.r, y1: Y(0), y2: Y(0), class: 'grid' }, s);
+    txt(s, W - m.r, H - 10, o.xLabel || '', { 'text-anchor': 'end', class: 't-muted' });
+    txt(s, m.l, H - 10, o.xLabelL || '', { class: 't-muted' });
+    // 군집 영역(옅은 덩어리): 볼록 껍질을 굵고 둥근 선으로 감싸 그린다
+    if (o.hulls) {
+      const groups = {}; o.points.forEach(p => (groups[p.c] = groups[p.c] || []).push([X(p.x), Y(p.y)]));
+      Object.entries(groups).forEach(([c, pts]) => {
+        const col = `var(${o.colors[c]})`;
+        if (pts.length === 1) { el('circle', { cx: pts[0][0], cy: pts[0][1], r: 30, fill: col, 'fill-opacity': .14 }, s); el('circle', { cx: pts[0][0], cy: pts[0][1], r: 30, fill: 'none', stroke: col, 'stroke-width': 1.5, class: 'pulse' }, s); return; }
+        const h = hull(pts);
+        el('path', { d: 'M' + h.map(q => q.join(',')).join('L') + 'Z', fill: col, 'fill-opacity': .1, stroke: col, 'stroke-opacity': .1, 'stroke-width': 44, 'stroke-linejoin': 'round' }, s);
+      });
+    }
+    // 라벨 배치: 점·기존 라벨과 겹치지 않는 후보 위치를 탐색
+    const boxes = o.points.map(p => ({ x: X(p.x) - 8, y: Y(p.y) - 8, w: 16, h: 16 }));
+    const hitBox = b => boxes.some(q => b.x < q.x + q.w && b.x + b.w > q.x && b.y < q.y + q.h && b.y + b.h > q.y) || b.x < 0 || b.x + b.w > W || b.y < 0 || b.y + b.h > H - 22;
+    o.points.slice().sort((a, b) => (b.hl ? 1 : 0) - (a.hl ? 1 : 0)).forEach(p => {
+      const cx = X(p.x), cy = Y(p.y), r = p.hl ? 8 : 6, fs = p.hl ? 13 : 11, tw = textWidth(p.name, fs), th = fs + 2;
+      const cand = [[r + 5, 4, 'start'], [-r - 5, 4, 'end'], [0, -r - 5, 'middle'], [0, r + fs + 2, 'middle'], [r + 3, -r - 2, 'start'], [-r - 3, -r - 2, 'end'], [r + 3, r + fs, 'start'], [-r - 3, r + fs, 'end']];
+      let best = null, lead = false;
+      for (const [dx, dy, an] of cand) {
+        const bx = an === 'start' ? cx + dx : an === 'end' ? cx + dx - tw : cx - tw / 2;
+        const b = { x: bx - 1, y: cy + dy - fs + 1, w: tw + 2, h: th };
+        if (!hitBox(b)) { best = { dx, dy, an, b }; break; }
+      }
+      if (!best) { // 리더선으로 바깥 배치
+        for (let k = 1; k < 8 && !best; k++) for (const sg of [1, -1]) {
+          const dy = sg * (14 * k + 4), b = { x: cx + r + 10, y: cy + dy - fs + 1, w: tw + 2, h: th };
+          if (!hitBox(b)) { best = { dx: r + 11, dy, an: 'start', b }; lead = true; break; }
+        }
+      }
+      if (!best) best = { dx: r + 5, dy: 4, an: 'start', b: { x: 0, y: 0, w: 0, h: 0 } };
+      boxes.push(best.b);
+      p._lab = { x: cx + best.dx, y: cy + best.dy, an: best.an, fs, lead };
+    });
+    o.points.slice().sort((a, b) => (a.hl ? 1 : 0) - (b.hl ? 1 : 0)).forEach(p => {
+      const cx = X(p.x), cy = Y(p.y), r = p.hl ? 8 : 6, L = p._lab;
+      const g = el('g', {}, s);
+      if (L.lead) el('line', { x1: cx + r, y1: cy, x2: L.x - 2, y2: L.y - 4, stroke: 'var(--axis)', 'stroke-width': 1 }, g);
+      el('circle', { cx, cy, r: r + 2, fill: 'var(--surface)' }, g);
+      el('circle', { cx, cy, r, fill: `var(${o.colors[p.c]})` }, g);
+      txt(g, L.x, L.y, p.name, { class: p.hl ? 't-strong' : '', 'font-size': L.fs, 'text-anchor': L.an });
+      el('circle', { cx, cy, r: 14, class: 'hit' }, g);
+      bindTip(g, typeof o.tip === 'function' ? () => o.tip(p) : p.name);
+    });
+    if (o.yLabelTop) txt(s, X(0) + 6, m.t + 10, o.yLabelTop, { class: 't-muted' });
+    if (o.yLabelBottom) txt(s, X(0) + 6, H - m.b - 6, o.yLabelBottom, { class: 't-muted' });
+    return s;
+  }
+
+  function hull(pts) { // Andrew monotone chain
+    const p = pts.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]); if (p.length < 3) return p;
+    const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+    const lo = []; for (const q of p) { while (lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], q) <= 0) lo.pop(); lo.push(q); }
+    const up = []; for (const q of p.slice().reverse()) { while (up.length >= 2 && cr(up[up.length - 2], up[up.length - 1], q) <= 0) up.pop(); up.push(q); }
+    return lo.slice(0, -1).concat(up.slice(0, -1));
+  }
+
+  /* ---------- 5. 가로 막대 목록 (그룹색) ---------- */
+  function listBars(host, o) {
+    const W = o.width || host.clientWidth || 560, rowH = o.rowH || 22, left = o.left || 150, right = 70, top = 4;
+    const H = top + o.items.length * rowH;
+    const s = svgFor(host, W, H, o.label);
+    const max = Math.max(...o.items.map(d => d.value));
+    const X = v => (W - left - right) * v / max;
+    el('line', { x1: left, x2: left, y1: 0, y2: H, class: 'axis' }, s);
+    o.items.forEach((d, i) => {
+      const y = top + i * rowH, bh = Math.min(14, rowH - 7);
+      const g = el('g', { class: 'row' }, s);
+      txt(g, left - 8, y + bh / 2 + 4, d.name, { 'text-anchor': 'end', class: d.strong ? 't-strong' : '' });
+      el('path', { d: barPath(left, y, X(d.value), bh), fill: d.color || 'var(--other)', class: 'mark' }, g);
+      txt(g, left + X(d.value) + 6, y + bh / 2 + 4, d.label || fmtT(d.value), { class: d.strong ? 't-strong' : '' });
+      const hit = el('rect', { x: 0, y: y - 3, width: W, height: rowH, class: 'hit' }, g);
+      if (d.tip) bindTip(hit, d.tip);
+    });
+    return s;
+  }
+
+  /* ---------- 6. 구·군 진단표 (발산 색: 대구 평균 대비) ---------- */
+  function heatTable(host, o) {
+    const mix = (a, b, t) => `color-mix(in oklab, ${a} ${Math.round((1 - t) * 100)}%, ${b})`;
+    let h = '<table class="heat"><thead><tr><th scope="col">구·군</th>' + o.cols.map(c => `<th scope="col">${c.name}<small>${c.unit || ''}</small></th>`).join('') + '</tr></thead><tbody>';
+    o.rows.forEach(r => {
+      h += `<tr><th scope="row">${r.name}</th>`;
+      o.cols.forEach(c => {
+        const v = r[c.key], ref = c.ref;
+        if (v == null) { h += '<td class="na">–</td>'; return; }
+        let z = (v - ref) / (Math.abs(ref) * (c.band || 0.3)); if (c.goodHigh) z = -z; // z>0 = 나쁨, 기준 대비 ±30%면 최대 농도
+        const t = c.neutral ? 0 : Math.min(1, Math.abs(z)) * 0.42;
+        const bg = z > 0 ? mix('var(--div-mid)', 'var(--div-pos)', t) : mix('var(--div-mid)', 'var(--div-neg)', t);
+        h += `<td style="background:${bg}" title="${r.name} ${c.name} ${fmt(v, c.dec ?? 1)}${c.unit || ''} (대구 전체 ${fmt(ref, c.dec ?? 1)})">${fmt(v, c.dec ?? 1)}</td>`;
+      });
+      h += '</tr>';
+    });
+    h += `<tr class="ref"><th scope="row">대구 전체</th>${o.cols.map(c => `<td>${fmt(c.ref, c.dec ?? 1)}</td>`).join('')}</tr></tbody></table>`;
+    host.innerHTML = h;
+  }
+
+  /* ---------- 7. 시나리오 계산 (대시보드·제안서 공용) ---------- */
+  function scenarioBase(D) {
+    const dg = D.sido.find(s => s.name === '대구');
+    const it = n => D.mixItems.find(i => i.item === n);
+    const R = ['폐지류', '폐합성수지류', '폐금속류', '폐유리류'].map(it);
+    const food = it('음식물류 폐기물'), con = it('건설폐재류(공사장생활폐기물)');
+    const matNow = D.flows['재활용품 분리배출'].mat + D.flows['음식물 분리배출'].mat + D.flows['종량제(혼합)'].mat;
+    return { dg, R, food, con, matNow, rLand: R.reduce((a, i) => a + i.land, 0), rGen: R.reduce((a, i) => a + i.gen, 0),
+      paperLand: it('폐지류').land, ef: D.ipcc.efPerTon, sepT: dg.sepT, mixLandT: D.flows['종량제(혼합)'].land };
+  }
+  function scenario(D, p) { // p: {a 재활용품 전환, b 공사장 선별, c 음식물 혼입 감소, r 목표 잔재물률(%)}
+    const B = scenarioBase(D), dg = B.dg;
+    const cutR = p.a * B.rLand, cutCon = p.b * B.con.land, cutFood = p.c * B.food.land;
+    const cut = cutR + cutCon + cutFood;
+    const landT = dg.landT - cut;
+    const matGain = p.a * B.rGen * (1 - p.r / 100) + p.b * B.con.gen * 0.8 + Math.max(0, (dg.residue - p.r) / 100) * B.sepT;
+    const matPct = (B.matNow + matGain) / dg.total * 100;
+    const ghg = p.a * B.paperLand * B.ef['폐지류'] + p.c * B.food.land * B.ef['음식물류 폐기물'];
+    const mixLandLeft = B.mixLandT - cut;
+    const others = D.sido.filter(s => s.name !== '전국' && s.name !== '대구').map(s => s.land);
+    const landPct = landT / dg.total * 100;
+    const rank = 1 + others.filter(v => v > landPct).length;
+    return { cut, cutR, cutCon, cutFood, landT, landPct, matPct, matGain, ghg, mixLandLeft, perDay: mixLandLeft / 366, rank };
+  }
+
+  window.VIZ = { rankBars, stack100, treatLegend, sankey, scatter, listBars, heatTable, scenario, scenarioBase, fmt, fmtT, bindTip, barPath, TREAT, css, el, txt, svgFor, textWidth, niceTicks };
+})();
+
+</script>
+<script>
+/* 대구 생활폐기물 분석 - 확장 차트 모듈 (타일 지도, 순위 띠, 레이더, 지층 단면, 와플, 폭포) */
+(function () {
+  const V = window.VIZ, { el, txt, svgFor, textWidth, fmt, fmtT, bindTip } = V;
+  const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches || /[?&]print=1/.test(location.search);
+
+  /* 색 띠: 표면색에서 주어진 색으로 t(0~1)만큼 섞는다. 테마 토큰을 그대로 쓰므로 다크 모드에서도 맞는다 */
+  const ramp = (cssVar, base = '--surface-2', lo = 10, hi = 100) => t => `color-mix(in oklab, var(${cssVar}) ${Math.round(lo + (hi - lo) * Math.max(0, Math.min(1, t)))}%, var(${base}))`;
+
+  /* ---------- 타일 지도 (개략 배치도, 실제 경계 아님) ---------- */
+  const SIDO_GRID = { 인천: [0, 0], 서울: [0, 1], 경기: [0, 2], 강원: [0, 3], 충남: [1, 0], 세종: [1, 1], 충북: [1, 2], 경북: [1, 3], 전북: [2, 0], 대전: [2, 1], 대구: [2, 2], 울산: [2, 3], 광주: [3, 0], 전남: [3, 1], 경남: [3, 2], 부산: [3, 3], 제주: [4, 1] };
+  const GU_GRID = { 군위군: [0, 2], 북구: [1, 1], 동구: [1, 2], 서구: [2, 0], 중구: [2, 1], 수성구: [2, 2], 달서구: [3, 0], 남구: [3, 1], 달성군: [4, 0] };
+  function tileMap(host, o) {
+    const grid = o.grid, names = Object.keys(grid);
+    const rows = Math.max(...names.map(n => grid[n][0])) + 1, cols = Math.max(...names.map(n => grid[n][1])) + 1;
+    const W = o.width || host.clientWidth || 420, gap = o.gap ?? 5, cell = Math.min(o.maxCell || 96, (W - gap * (cols - 1)) / cols), ch = cell * (o.aspect || .78);
+    const gw = cell * cols + gap * (cols - 1), ox = (W - gw) / 2, H = ch * rows + gap * (rows - 1) + 4;
+    const s = svgFor(host, W, H, o.label);
+    const vals = names.map(n => o.value(n)).filter(v => v != null), mn = o.min ?? Math.min(...vals), mx = o.max ?? Math.max(...vals);
+    names.forEach((n, i) => {
+      const [r, c] = grid[n], x = ox + c * (cell + gap), y = 2 + r * (ch + gap), v = o.value(n), t = v == null ? 0 : (mx === mn ? .5 : (v - mn) / (mx - mn)), hl = n === o.highlight;
+      const g = el('g', { class: 'tile-g' + (still() ? '' : ' pop'), style: `animation-delay:${(r * 60 + c * 40)}ms` }, s);
+      el('rect', { x, y, width: cell, height: ch, rx: 8, fill: v == null ? `var(${o.naVar || '--surface-2'})` : o.color(t), stroke: hl ? `var(${o.hlStroke || '--ink'})` : null, 'stroke-width': hl ? 2.5 : null }, g);
+      if (hl && o.pulse) el('rect', { x: x - 3, y: y - 3, width: cell + 6, height: ch + 6, rx: 10, fill: 'none', stroke: `var(${o.hlStroke || '--ink'})`, 'stroke-width': 1.5, class: 'pulse' }, g);
+      const dark = o.textDark ? o.textDark(t) : t < .55, cls = v == null ? 'tile-t na' : (dark ? 'tile-t dk' : 'tile-t lt');
+      const big = cell >= 62;
+      txt(g, x + cell / 2, y + ch / 2 - (big ? 3 : 1), n, { 'text-anchor': 'middle', class: cls + (hl ? ' b' : ''), 'font-size': big ? 13 : 11 });
+      txt(g, x + cell / 2, y + ch / 2 + (big ? 15 : 12), v == null ? '–' : fmt(v, o.dec ?? 1) + (big ? (o.unit || '') : ''), { 'text-anchor': 'middle', class: cls + ' v', 'font-size': big ? 13 : 10.5 });
+      el('rect', { x, y, width: cell, height: ch, rx: 8, class: 'hit' }, g);
+      bindTip(g, () => o.tip ? o.tip(n, v) : `<b>${n}</b> ${v == null ? '자료 없음' : fmt(v, o.dec ?? 1) + (o.unit || '')}`);
+    });
+    return s;
+  }
+
+  /* ---------- 순위 띠: 지표별로 17개 시도의 위치를 한 줄에 ---------- */
+  function strips(host, o) {
+    const W = o.width || host.clientWidth || 640, narrow = W < 520, rowH = o.rowH || (narrow ? 56 : 46);
+    const left = narrow ? 8 : 150, right = narrow ? 8 : 150, top = 6, H = top + o.rows.length * rowH;
+    const s = svgFor(host, W, H, o.label);
+    o.rows.forEach((r, i) => {
+      const y = top + i * rowH + (narrow ? 32 : rowH / 2), vals = r.values.filter(d => d.v != null), mn = Math.min(...vals.map(d => d.v)), mx = Math.max(...vals.map(d => d.v));
+      const X = v => left + 10 + (W - left - right - 20) * (v - mn) / (mx - mn || 1);
+      const g = el('g', { class: 'strip-row' + (r.active ? ' on' : ''), role: 'button', 'aria-label': r.name + ' 선택' }, s);
+      el('rect', { x: 0, y: top + i * rowH + 2, width: W, height: rowH - 4, rx: 8, class: 'strip-bg' }, g);
+      el('line', { x1: left, x2: W - right, y1: y, y2: y, class: 'axis' }, g);
+      const dz = vals.find(d => d.name === o.highlight);
+      const HN = o.highlight, RL = o.refLabel || '전국';
+      if (narrow) { txt(g, left + 4, top + i * rowH + 16, r.name, { class: 't-strong', 'font-size': 12.5 }); txt(g, W - right - 4, top + i * rowH + 16, `${HN} ${fmt(dz ? dz.v : null, r.dec ?? 1)}${r.unit || ''} · ${r.rankText}`, { 'text-anchor': 'end', class: 't-strong', 'font-size': 12 }); }
+      else { txt(g, left - 14, y + 4, r.name, { 'text-anchor': 'end', class: 't-strong', 'font-size': 13 }); txt(g, W - right + 14, y - 2, r.rankText, { class: 't-strong', 'font-size': 13 }); txt(g, W - right + 14, y + 13, r.note || '', { class: 't-muted' }); }
+      vals.filter(d => d.name !== o.highlight).forEach(d => el('circle', { cx: X(d.v), cy: y, r: 4.5, fill: 'var(--ink-3)', 'fill-opacity': .38 }, g));
+      if (r.ref != null) { el('line', { x1: X(r.ref), x2: X(r.ref), y1: y - 9, y2: y + 9, stroke: 'var(--ink-2)', 'stroke-width': 1.5 }, g); txt(g, X(r.ref), y + 20, RL, { 'text-anchor': 'middle', class: 't-muted', 'font-size': 10 }); }
+      const d = vals.find(d => d.name === o.highlight);
+      if (d) { const cx = X(d.v), col = `var(${r.good ? '--c-mat' : '--c-land'})`;
+        el('circle', { cx, cy: y, r: 10, fill: 'var(--surface)' }, g); el('circle', { cx, cy: y, r: 8, fill: col }, g);
+        const lab = `${HN} ${fmt(d.v, r.dec ?? 1)}${r.unit || ''}`, tw = textWidth(lab, 12);
+        const lx = cx + 13 + tw > W - right ? cx - 13 : cx + 13;
+        if (!narrow) txt(g, lx, y - 11, lab, { 'text-anchor': lx < cx ? 'end' : 'start', class: 't-strong', 'font-size': 12 }); }
+      const hit = el('rect', { x: 0, y: top + i * rowH, width: W, height: rowH, class: 'hit', style: 'cursor:pointer' }, g);
+      hit.addEventListener('click', () => o.onSelect && o.onSelect(i));
+      hit.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); o.onSelect && o.onSelect(i); } });
+      bindTip(hit, `<b>${r.name}</b> · ${r.rankText}<br><span class="k">${HN} ${fmt(d ? d.v : null, r.dec ?? 1)}${r.unit || ''} · ${RL} ${fmt(r.ref, r.dec ?? 1)}${r.unit || ''}<br>범위 ${fmt(mn, r.dec ?? 1)}~${fmt(mx, r.dec ?? 1)}${r.unit || ''}</span>`);
+    });
+    return s;
+  }
+
+  /* ---------- 레이더: 축마다 0부터 17개 시도 최댓값까지 ---------- */
+  function radar(host, o) {
+    const W = o.width || host.clientWidth || 420, H = o.height || Math.min(W, 400), cx = W / 2, cy = H / 2 + 4, R = Math.min(W / 2 - 86, H / 2 - 44), n = o.axes.length;
+    const s = svgFor(host, W, H, o.label);
+    const ang = i => -Math.PI / 2 + i * 2 * Math.PI / n, pt = (i, t) => [cx + R * t * Math.cos(ang(i)), cy + R * t * Math.sin(ang(i))];
+    [.25, .5, .75, 1].forEach(t => el('polygon', { points: o.axes.map((_, i) => pt(i, t).join(',')).join(' '), fill: t === 1 ? 'var(--surface-2)' : 'none', 'fill-opacity': t === 1 ? .5 : null, class: 'grid', stroke: 'var(--grid)' }, s));
+    o.axes.forEach((a, i) => { const [x, y] = pt(i, 1); el('line', { x1: cx, y1: cy, x2: x, y2: y, class: 'grid' }, s); });
+    o.series.forEach(se => {
+      const pts = o.axes.map((a, i) => pt(i, Math.max(0, se.values[a.key] / a.max)));
+      el('polygon', { points: pts.map(p => p.join(',')).join(' '), fill: se.fill === false ? 'none' : se.color, 'fill-opacity': se.fill === false ? null : (se.opacity ?? .22), stroke: se.color, 'stroke-width': se.width || 2, 'stroke-dasharray': se.dash || null, 'stroke-linejoin': 'round', class: se.main && !still() ? 'radar-in' : '' }, s);
+      if (se.main) pts.forEach((p, i) => { const g = el('g', {}, s); el('circle', { cx: p[0], cy: p[1], r: 6.5, fill: 'var(--surface)' }, g); el('circle', { cx: p[0], cy: p[1], r: 4.5, fill: se.color }, g); el('circle', { cx: p[0], cy: p[1], r: 13, class: 'hit' }, g);
+        bindTip(g, `<b>${o.axes[i].name}</b><br>` + o.series.map(x => `<span class="sw" style="background:${x.color}"></span>${x.name} <b>${fmt(x.values[o.axes[i].key], 1)}%</b>`).join('<br>') + `<br><span class="k">축 범위 0~${fmt(o.axes[i].max, 0)}%</span>`); });
+    });
+    o.axes.forEach((a, i) => { const [x, y] = pt(i, 1.16), c = Math.cos(ang(i)), anchor = Math.abs(c) < .3 ? 'middle' : (c > 0 ? 'start' : 'end');
+      txt(s, x, y, a.name, { 'text-anchor': anchor, class: 't-strong', 'font-size': 12.5 });
+      txt(s, x, y + 15, a.sub || '', { 'text-anchor': anchor, class: 't-muted' }); });
+    return s;
+  }
+
+  /* ---------- 매립 지층 단면: 층 두께가 톤수 ---------- */
+  function strata(host, o) {
+    const W = o.width || host.clientWidth || 560, narrow = W < 480, side = narrow ? 0 : 172, bodyW = W - side, top = 34, H = (o.height || 440) + top + 6, bodyH = H - top - 6;
+    const total = o.layers.reduce((a, l) => a + l.value, 0), k = bodyH / total;
+    const s = svgFor(host, W, H, o.label);
+    // 지표면
+    txt(s, 2, 14, o.surfaceLabel || '', { class: 't-strong', 'font-size': 12.5 });
+    el('path', { d: `M0,${top - 3} H${bodyW}`, stroke: 'var(--c-mat)', 'stroke-width': 3, 'stroke-linecap': 'round' }, s);
+    for (let x = 10; x < bodyW - 6; x += 17) el('path', { d: `M${x},${top - 4} l-2.5,-6 M${x},${top - 4} l2.5,-7 M${x},${top - 4} l0,-8`, stroke: 'var(--c-mat)', 'stroke-width': 1.3, 'stroke-linecap': 'round', fill: 'none' }, s);
+    const wave = (y, ph, amp) => { let d = ''; const n = 24; for (let i = 0; i <= n; i++) { const x = bodyW * i / n; d += (i ? 'L' : '') + x.toFixed(1) + ',' + (y + amp * Math.sin(i / n * Math.PI * 2 * 1.6 + ph)).toFixed(1); } return d; };
+    const waveRev = (y, ph, amp) => { let d = ''; const n = 24; for (let i = n; i >= 0; i--) { const x = bodyW * i / n; d += 'L' + x.toFixed(1) + ',' + (y + amp * Math.sin(i / n * Math.PI * 2 * 1.6 + ph)).toFixed(1); } return d; };
+    let y = top; const pos = [];
+    o.layers.forEach((l, i) => {
+      const h = l.value * k, amp = Math.min(5, h / 5), y0 = y, y1 = y + h, last = i === o.layers.length - 1;
+      const g = el('g', { class: 'stratum' + (still() ? '' : ' sink'), style: `animation-delay:${i * 70}ms` }, s);
+      el('path', { d: 'M' + wave(y0 + (i ? 1 : 0), i * 1.7, i ? amp : 0) + (last ? `L${bodyW},${y1}L0,${y1}` : waveRev(y1 - 1, (i + 1) * 1.7, Math.min(5, o.layers[i + 1].value * k / 5))) + 'Z', fill: l.color }, g);
+      const share = fmt(l.value / total * 100, 0) + '%';
+      if (h >= 22) { txt(g, 14, y0 + h / 2 + 5, l.name, { class: 'strata-t' + (l.dark ? ' dk' : ' lt'), 'font-size': h >= 34 ? 14 : 12.5, 'font-weight': 700 });
+        txt(g, bodyW - 14, y0 + h / 2 + 5, `${fmtT(l.value)} · ${share}`, { 'text-anchor': 'end', class: 'strata-t' + (l.dark ? ' dk' : ' lt'), 'font-size': h >= 34 ? 13 : 12 }); }
+      else if (h >= 12) txt(g, 14, y0 + h / 2 + 4, `${l.name} ${fmtT(l.value)}`, { class: 'strata-t' + (l.dark ? ' dk' : ' lt'), 'font-size': 10.5, 'font-weight': 600 });
+      el('rect', { x: 0, y: y0, width: bodyW, height: h, class: 'hit' }, g);
+      bindTip(g, l.tip || `<b>${l.name}</b><br>${fmtT(l.value)} · ${share}`);
+      pos.push({ y0, y1, l }); y = y1;
+    });
+    // 오른쪽 묶음 표시
+    if (!narrow) (o.brackets || []).forEach(b => {
+      const a = pos.filter(p => b.names.includes(p.l.name)); if (!a.length) return; const y0 = Math.min(...a.map(p => p.y0)) + 3, y1 = Math.max(...a.map(p => p.y1)) - 3, x = bodyW + 10, my = (y0 + y1) / 2;
+      el('path', { d: `M${x},${y0} h7 V${y1} h-7`, fill: 'none', stroke: b.color, 'stroke-width': 2 }, s);
+      txt(s, x + 14, my - 10, b.title, { class: 't-strong', 'font-size': 12.5 });
+      txt(s, x + 14, my + 8, b.value, { class: 't-strong', 'font-size': 16 });
+      txt(s, x + 14, my + 24, b.note || '', { class: 't-muted' });
+    });
+    return s;
+  }
+
+  /* ---------- 와플: 100칸 ---------- */
+  function waffle(host, o) {
+    const total = o.groups.reduce((a, g) => a + g.value, 0);
+    const raw = o.groups.map(g => g.value / total * 100), base = raw.map(Math.floor); let rest = 100 - base.reduce((a, b) => a + b, 0);
+    raw.map((v, i) => [v - base[i], i]).sort((a, b) => b[0] - a[0]).forEach(([, i]) => { if (rest > 0) { base[i]++; rest--; } });
+    const cells = []; o.groups.forEach((g, i) => { for (let k = 0; k < base[i]; k++) cells.push(i); });
+    const W = o.width || host.clientWidth || 360, cols = o.cols || 20, rows = Math.ceil(100 / cols), gap = 3, cell = (W - gap * (cols - 1)) / cols, H = rows * cell + (rows - 1) * gap;
+    const s = svgFor(host, W, H, o.label);
+    cells.forEach((gi, i) => { const c = i % cols, r = Math.floor(i / cols), g = o.groups[gi];
+      const e = el('rect', { x: c * (cell + gap), y: r * (cell + gap), width: cell, height: cell, rx: Math.min(5, cell / 4), fill: g.color, class: still() ? '' : 'pop', style: `animation-delay:${i * 6}ms` }, s);
+      bindTip(e, `<b>${g.name}</b><br>${fmtT(g.value)} · ${fmt(g.value / total * 100, 1)}%<br><span class="k">100칸 중 ${base[gi]}칸</span>`); });
+    return { svg: s, counts: base };
+  }
+
+  /* ---------- 폭포: 현재 → 감축 단계 → 결과 ---------- */
+  function waterfall(host, o) {
+    const W = o.width || host.clientWidth || 520, H = o.height || 250, m = { l: 40, r: 8, t: 26, b: 44 };
+    const s = svgFor(host, W, H, o.label);
+    const cols = [o.start, ...o.steps, o.end], n = cols.length, slot = (W - m.l - m.r) / n, bw = Math.min(64, slot * .62), max = o.start.value * 1.02;
+    const Y = v => m.t + (H - m.t - m.b) * (1 - v / max);
+    V.niceTicks(max, 4).forEach(t => { el('line', { x1: m.l, x2: W - m.r, y1: Y(t), y2: Y(t), class: 'grid' }, s); txt(s, m.l - 6, Y(t) + 4, t >= 10000 ? fmt(t / 10000, 0) + '만' : fmt(t), { class: 't-muted', 'text-anchor': 'end' }); });
+    el('line', { x1: m.l, x2: W - m.r, y1: Y(0), y2: Y(0), class: 'axis' }, s);
+    let run = o.start.value;
+    cols.forEach((c, i) => {
+      const x = m.l + slot * i + (slot - bw) / 2, isStep = i > 0 && i < n - 1; let y0, y1, lab;
+      if (!isStep) { y0 = Y(c.value); y1 = Y(0); lab = fmtT(c.value); }
+      else { y0 = Y(run); y1 = Y(run - c.value); lab = c.value > 0 ? '−' + fmtT(c.value) : '0'; }
+      const g = el('g', {}, s), h = Math.max(isStep && c.value > 0 ? 2 : 0, y1 - y0);
+      el('rect', { x, y: y0, width: bw, height: h, rx: 4, fill: c.color }, g);
+      txt(g, x + bw / 2, y0 - 6, lab, { 'text-anchor': 'middle', class: 't-strong', 'font-size': slot < 72 ? 10.5 : 12 });
+      const words = c.name.split('\n'); words.forEach((w, k) => txt(g, x + bw / 2, H - m.b + 16 + k * 13, w, { 'text-anchor': 'middle', class: isStep ? '' : 't-strong', 'font-size': 11.5 }));
+      if (i < n - 1) { const ny = isStep ? y1 : y0; const nx = m.l + slot * (i + 1) + (slot - bw) / 2; el('line', { x1: x + bw, x2: nx, y1: isStep ? y1 : y0, y2: isStep ? y1 : y0, stroke: 'var(--axis)', 'stroke-width': 1, 'stroke-dasharray': '3 3' }, s); }
+      el('rect', { x: x - 6, y: m.t, width: bw + 12, height: H - m.t - m.b, class: 'hit' }, g);
+      bindTip(g, c.tip || `<b>${c.name.replace('\n', ' ')}</b><br>${lab}`);
+      if (isStep) run -= c.value;
+    });
+    return s;
+  }
+
+  /* ---------- 덴드로그램(가로): scipy dendrogram 좌표를 그대로 그린다 ---------- */
+  function dendro(host, o) {
+    const n = o.labels.length, W = o.width || host.clientWidth || 560, rowH = o.rowH || 21, left = 54, right = 34, top = 20, H = top + n * rowH + 6;
+    const s = svgFor(host, W, H, o.label);
+    const maxD = Math.max(...o.dcoord.flat()) * 1.04, X = d => left + (W - left - right) * d / maxD, Y = v => top + (v - 5) / 10 * rowH + rowH / 2;
+    V.niceTicks(maxD, 5).forEach(t => { el('line', { x1: X(t), x2: X(t), y1: top - 4, y2: H - 4, class: 'grid' }, s); txt(s, X(t), 11, fmt(t, 0), { class: 't-muted', 'text-anchor': 'middle' }); });
+    const hy = Y(5 + 10 * o.labels.indexOf(o.highlight));
+    o.icoord.forEach((ic, i) => { const dc = o.dcoord[i], top4 = Math.max(...dc);
+      const isHl = dc.some((d, k) => d === 0 && Math.abs(Y(ic[k]) - hy) < .5);
+      el('path', { d: `M${X(dc[0])},${Y(ic[0])}H${X(dc[1])}V${Y(ic[2])}H${X(dc[3])}`, fill: 'none', stroke: isHl ? `var(${o.hlVar})` : 'var(--ink-3)', 'stroke-width': isHl ? 2.5 : 1.3, 'stroke-linejoin': 'round', 'stroke-opacity': isHl ? 1 : .75 }, s);
+      if (isHl) { txt(s, X(top4) - 6, (Y(ic[1]) + Y(ic[2])) / 2 - 6, o.hlNote || '', { 'text-anchor': 'end', class: 't-strong', 'font-size': 11.5 }); } });
+    o.labels.forEach((nm, i) => { const y = Y(5 + 10 * i), hl = nm === o.highlight;
+      el('circle', { cx: left, cy: y, r: hl ? 5 : 3.5, fill: hl ? `var(${o.hlVar})` : `var(${(o.colorOf && o.colorOf(nm)) || '--ink-3'})` }, s);
+      txt(s, left - 10, y + 4, nm, { 'text-anchor': 'end', class: hl ? 't-strong' : '', 'font-size': hl ? 13 : 11.5 }); });
+    return s;
+  }
+
+  /* ---------- 숫자 올라가기 ---------- */
+  function countUp(node, to, dec = 1, suffix = '', ms = 900) {
+    if (still() || !window.requestAnimationFrame) { node.textContent = fmt(to, dec) + suffix; return; }
+    const t0 = performance.now(); node.textContent = fmt(0, dec) + suffix;
+    const step = t => { const p = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - p, 3); node.textContent = fmt(to * e, dec) + suffix; if (p < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+    setTimeout(() => { node.textContent = fmt(to, dec) + suffix; }, ms + 200);
+  }
+
+  Object.assign(V, { ramp, tileMap, SIDO_GRID, GU_GRID, strips, radar, strata, waffle, waterfall, dendro, countUp, still });
+})();
+
+</script>
+<script>
+(function () {
+  const D = window.DATA, V = window.VIZ, f = V.fmt, T = V.fmtT, $ = id => document.getElementById(id);
+  const sido = D.sido, dg = sido.find(s => s.name === '대구'), kr = sido.find(s => s.name === '전국');
+  const S17 = sido.filter(s => s.name !== '전국'), byName = Object.fromEntries(sido.map(s => [s.name, s]));
+  const rankOf = (k, asc) => 1 + S17.filter(s => s[k] != null && (asc ? s[k] < dg[k] : s[k] > dg[k])).length;
+  const R_BAD = V.ramp('--c-land'), R_GOOD = V.ramp('--c-mat'), R_NEU = V.ramp('--c-inc');
+
+  /* 테마 */
+  const tbtn = $('theme');
+  const isDark = () => document.documentElement.dataset.theme ? document.documentElement.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  try { const t = localStorage.getItem('dg-theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  const syncBtn = () => tbtn.textContent = isDark() ? '라이트 모드' : '다크 모드';
+  tbtn.onclick = () => { const t = isDark() ? 'light' : 'dark'; document.documentElement.dataset.theme = t; try { localStorage.setItem('dg-theme', t); } catch (e) {} syncBtn(); };
+  syncBtn();
+  if (/[?&]print=1/.test(location.search)) { document.documentElement.dataset.theme = 'light'; document.querySelectorAll('details.method').forEach(d => d.open = true); }
+  addEventListener('beforeprint', () => document.querySelectorAll('details.method').forEach(d => d.open = true));
+
+  /* 히어로 */
+  V.countUp($('h-land'), dg.land, 1, '%');
+  $('h-land-cmp').innerHTML = `전국 ${f(kr.land, 1)}%의 <b style="font-size:inherit">${f(dg.land / kr.land, 1)}배</b> · 17개 시도 중 <b style="font-size:inherit">${rankOf('land')}위</b>`;
+  $('hero-max').textContent = f(dg.land, 1) + '% (대구)';
+  const tiles = [
+    ['1인당 하루 발생량', f(dg.kgDay, 2), 'kg', `전국 ${f(kr.kgDay, 2)}kg`, `${rankOf('kgDay', true)}번째로 적음`, 'ok'],
+    ['종량제봉투 매립률', f(dg.mixLand, 1), '%', `전국 ${f(kr.mixLand, 1)}%`, `${rankOf('mixLand')}위`, 'bad'],
+    ['분리배출 잔재물률', f(dg.residue, 1), '%', `전국 ${f(kr.residue, 1)}% · 5개 중 1개는 쓰레기`, `${rankOf('residue')}위`, 'bad'],
+    ['물질재활용률', f(dg.mat, 1), '%', `전국 ${f(kr.mat, 1)}%`, `17개 시도 중 ${rankOf('mat')}위`, 'bad'],
+  ];
+  $('tiles').innerHTML = tiles.map(t => `<div class="tile"><div class="lab">${t[0]}<span class="badge ${t[5]}">${t[5] === 'bad' ? '▲ ' : '✓ '}${t[4]}</span></div><div class="val">${t[1]}<small>${t[2]}</small></div><div class="cmp">${t[3]}</div></div>`).join('');
+  function drawHero() {
+    V.tileMap($('hero-map'), { grid: V.SIDO_GRID, value: n => byName[n].land, min: 0, color: V.ramp('--hero-accent', '--hero-tile', 0, 100), textDark: t => t > .82, highlight: '대구', hlStroke: '--hero-ink', pulse: true, unit: '%', maxCell: 104,
+      label: '17개 시도 매립률 타일 지도', tip: (n, v) => `<b>${n}</b> 매립률 ${f(v, 1)}%<br><span class="k">17개 시도 중 ${1 + S17.filter(s => s.land > v).length}위 · 전국 ${f(kr.land, 1)}%</span>` });
+  }
+
+  /* 지표 정의 */
+  const M = [
+    { k: 'land', n: '매립률', u: '%', t: '생활폐기물 매립률', s: '발생량 중 매립된 비율. 대구 1위.', ramp: R_BAD, note: '높을수록 불리' },
+    { k: 'mixLand', n: '종량제 매립률', u: '%', t: '종량제봉투(혼합배출) 매립률', s: '종량제로 배출된 쓰레기 중 매립 비율. 대구 1위.', ramp: R_BAD, note: '높을수록 불리' },
+    { k: 'residue', n: '잔재물률', u: '%', t: '분리배출 재활용품 중 잔재물 비율', s: '분리배출했지만 선별장에서 재활용되지 못하고 버려진 비율. 대구 1위.', ramp: R_BAD, note: '높을수록 불리' },
+    { k: 'mat', n: '물질재활용률', u: '%', t: '물질재활용률', s: '발생량 중 물질로 재활용된 비율. 높을수록 좋은 지표이며, 대구는 17개 시도 중 16위.', ramp: R_GOOD, note: '높을수록 유리' },
+    { k: 'energy', n: '에너지회수율', u: '%', t: '에너지회수율', s: 'SRF·바이오가스 등 에너지로 회수한 비율. 대구 1위(강점).', ramp: R_GOOD, note: '높을수록 유리', good: true },
+    { k: 'kgDay', n: '1인당 발생량', u: 'kg', t: '1인당 하루 생활폐기물 발생량', s: '대구는 전국 평균보다 적음.', dec: 2, ramp: R_NEU, note: '낮을수록 유리', good: true, asc: true },
+    { k: 'constrLandShare', n: '공사장생활폐기물 매립 비중', u: '%', t: '매립량 중 공사장생활폐기물 비중', s: '대구 25.3% (전국 7.9%) · 2위. 세종은 매립량이 0이라 제외했습니다.', ramp: R_BAD },
+  ];
+  const seg = $('metric-seg');
+  seg.innerHTML = M.map((m, i) => `<button type="button" aria-pressed="${i === 0}" data-i="${i}">${m.n}</button>`).join('');
+  let cur = 0;
+  function drawStrips() {
+    V.strips($('strips'), { highlight: '대구', label: '여섯 지표별 17개 시도 분포와 대구의 위치', onSelect: select,
+      rows: M.slice(0, 6).map((m, i) => ({ name: m.n, unit: m.u, dec: m.dec ?? 1, ref: kr[m.k], good: !!m.good, active: i === cur, note: m.note,
+        rankText: m.asc ? `적은 순 ${rankOf(m.k, true)}위` : `${rankOf(m.k)}위 / 17`, values: S17.map(s => ({ name: s.name, v: s[m.k] })) })) });
+  }
+  function drawRank() {
+    const m = M[cur], vals = S17.map(s => s[m.k]).filter(v => v != null), mx = Math.max(...vals);
+    $('rank-title').textContent = m.t + ' (2024)';
+    $('rank-sub').textContent = m.s;
+    V.rankBars($('rank'), { items: sido.map(s => ({ name: s.name, value: s[m.k] })), highlight: '대구', ref: '전국', unit: m.u, dec: m.dec ?? 1, tickDec: m.dec ? 1 : 0, metricName: m.n, label: m.t + ' 시도별 순위', ramp: v => m.ramp(.12 + .88 * v / mx) });
+    const rows = S17.filter(s => s[m.k] != null).sort((a, b) => b[m.k] - a[m.k]);
+    $('rank-table').innerHTML = `<table><caption class="sr">${m.t} 시도별 값</caption><thead><tr><th scope="col">순위</th><th scope="col">시도</th><th scope="col">${m.n} (${m.u})</th></tr></thead><tbody>` +
+      rows.map((s, i) => `<tr class="${s.name === '대구' ? 'hl' : ''}"><td>${i + 1}</td><td>${s.name}</td><td>${f(s[m.k], m.dec ?? 1)}</td></tr>`).join('') +
+      `<tr><td>–</td><td>전국</td><td>${f(kr[m.k], m.dec ?? 1)}</td></tr></tbody></table>`;
+  }
+  function select(i) { cur = i; seg.querySelectorAll('button').forEach((x, k) => x.setAttribute('aria-pressed', k === i)); drawStrips(); drawRank(); }
+  seg.onclick = e => { const b = e.target.closest('button'); if (b) select(+b.dataset.i); };
+
+  /* 흐름 */
+  const fl = D.flows;
+  const streamRow = (n, k) => ({ name: n, mat: fl[k].mat, en: fl[k].en, inc: fl[k].inc, land: fl[k].land });
+  const totals = s => ({ mat: s.total * s.mat / 100, en: s.total * s.energy / 100, inc: s.total * s.incin / 100, land: s.total * s.land / 100 });
+
+  /* 군집 */
+  const cls = D.cluster.centers, dgC = dg.cluster;
+  const order = [dgC, ...cls.map(c => c.id).filter(i => i !== dgC)];
+  const colorOf = {}; order.forEach((id, i) => colorOf[id] = ['--k2', '--k1', '--k3'][i]);
+  const topMat = Math.max(...cls.filter(c => !c.members.includes('대구')).map(c => c.mean.mat));
+  const clName = c => c.members.includes('대구') ? '매립·에너지회수 의존형' : (c.mean.mat === topMat ? '물질재활용 선도형' : '소각 중심형');
+  const FEAT = [['mat', '물질재활용률'], ['energy', '에너지회수율'], ['incin', '소각률'], ['land', '매립률'], ['residue', '잔재물률']];
+  function drawCluster() {
+    $('pca-sub').textContent = `두 축이 전체 변동의 ${f((D.cluster.pcaVar[0] + D.cluster.pcaVar[1]) * 100, 0)}%를 설명합니다. 가까울수록 처리 구조가 닮았고, 옅은 영역이 같은 군집입니다. 점에 마우스를 올리면 지표가 보입니다.`;
+    $('cl-legend').innerHTML = order.map(id => { const c = cls.find(x => x.id === id); return `<li><i style="background:var(${colorOf[id]})"></i>${clName(c)} (${c.members.length})</li>`; }).join('');
+    V.scatter($('scatter'), { height: 470, hulls: true, colors: colorOf, xLabel: '매립·잔재물 많음 →', xLabelL: '← 물질재활용 많음', yLabelTop: '↑ 소각 많음', yLabelBottom: '↓ 에너지회수 많음', label: '17개 시도 PCA 산점도',
+      points: S17.map(s => ({ name: s.name, x: s.pcx, y: s.pcy, c: s.cluster, hl: s.name === '대구', s })),
+      tip: p => `<b>${p.name}</b> · ${clName(cls.find(c => c.id === p.c))}<br><span class="k">매립 ${f(p.s.land, 1)}% · 물질재활용 ${f(p.s.mat, 1)}%<br>에너지회수 ${f(p.s.energy, 1)}% · 잔재물 ${f(p.s.residue, 1)}%</span>` });
+    // 레이더
+    const lead = cls.find(c => !c.members.includes('대구') && c.mean.mat === topMat);
+    const krV = { mat: kr.mat, energy: kr.energy, incin: kr.incin, land: kr.land, residue: kr.residue }, dgV = { mat: dg.mat, energy: dg.energy, incin: dg.incin, land: dg.land, residue: dg.residue };
+    const series = [
+      { name: clName(lead) + ' 평균', color: `var(${colorOf[lead.id]})`, values: lead.mean, fill: false, width: 1.5 },
+      { name: '전국', color: 'var(--ink-3)', values: krV, fill: false, width: 1.5, dash: '5 4' },
+      { name: '대구', color: `var(${colorOf[dgC]})`, values: dgV, main: true, width: 2.5, opacity: .28 }];
+    $('radar-legend').innerHTML = series.slice().reverse().map(x => `<li><i class="line" style="background:${x.color};height:3px"></i>${x.name}</li>`).join('');
+    V.radar($('radar'), { height: 360, label: '대구·전국·선도형 처리 구조 레이더', series,
+      axes: FEAT.map(([k, n]) => ({ key: k, name: n, max: Math.ceil(Math.max(...S17.map(s => s[k])) / 10) * 10, sub: `대구 ${f(dg[k], 1)} · 전국 ${f(kr[k], 1)}` })) });
+    const ordC = order.map(id => cls.find(x => x.id === id));
+    $('cl-cards').innerHTML = `<table class="rb cl"><thead><tr><th scope="col">지표(%)</th>` +
+      ordC.map(c => `<th scope="col" style="text-align:right"><span class="sw" style="background:var(${colorOf[c.id]})"></span>${clName(c)}<br><span style="font-weight:400">${c.members.length === 1 ? c.members[0] : c.members.length + '개 시도'}</span></th>`).join('') + `</tr></thead><tbody>` +
+      FEAT.map(([k, n]) => `<tr><td>${n}</td>` + ordC.map((c, i) => `<td style="text-align:right;font-variant-numeric:tabular-nums${i === 0 ? ';font-weight:700' : ''}">${f(c.mean[k], 1)}</td>`).join('') + '</tr>').join('') +
+      `</tbody></table><p class="note">${ordC.filter(c => c.members.length > 1).map(c => `<b>${clName(c)}</b> ${c.members.join('·')}`).join(' / ')}</p>`;
+    const dn = D.dendro;
+    $('dendro-sub').textContent = `가까운 시도끼리 차례로 묶어 올라가는 방법입니다(평균 연결법). 오른쪽에서 합쳐질수록 서로 다르다는 뜻입니다. 대구는 ${dn.steps}번의 병합 중 맨 마지막(거리 ${f(dn.daeguHeight, 2)})에 합쳐집니다. 그 전까지 가장 먼 병합 거리는 ${f(dn.prevMaxHeight, 2)}였습니다.`;
+    V.dendro($('dendro'), { labels: dn.labels, icoord: dn.icoord, dcoord: dn.dcoord, highlight: '대구', hlVar: colorOf[dgC], hlNote: '대구가 마지막에 합쳐짐', colorOf: n => colorOf[byName[n].cluster], label: '17개 시도 계층적 군집 덴드로그램' });
+    const rb = D.cluster.robust, nn = rb.nearestNeighbor, yes = v => v ? '<span class="ok">✓ 유지</span>' : '<span class="warn">✕ 다른 시도와 묶임</span>';
+    V.listBars($('nn'), { left: 96, rowH: 24, label: '최근접 거리 상위 6개 시도', items: nn.slice(0, 6).map(x => ({ name: `${x.name} → ${x.nearest}`, value: x.dist, label: f(x.dist, 2), color: x.name === '대구' ? `var(${colorOf[dgC]})` : 'var(--other)', strong: x.name === '대구',
+      tip: `<b>${x.name}</b>와 가장 닮은 시도는 <b>${x.nearest}</b><br><span class="k">거리 ${f(x.dist, 2)} (표준화 공간)</span>` })) });
+    const ks = Object.entries(rb.kmeansAloneByK).filter(([k]) => +k >= 3), lo = Object.values(rb.leaveOneFeatureOut);
+    const hAll = Object.values(rb.hierarchical).every(o => Object.values(o).every(Boolean));
+    const featName = Object.fromEntries(FEAT), lose = Object.entries(rb.leaveOneFeatureOut).filter(([, v]) => !v).map(([k]) => featName[k]);
+    const sils = D.cluster.scan.map(x => x.silhouette);
+    $('robust').innerHTML = `<div><table class="rb"><thead><tr><th scope="col">바꾼 조건</th><th scope="col">대구 단독 군집</th></tr></thead><tbody>
+      <tr><td>군집 수 k = ${ks.map(([k]) => k).join(', ')}</td><td class="r">${yes(ks.every(([, v]) => v))}</td></tr>
+      <tr><td>초기값 무작위 50회 (k=3 / k=4)</td><td class="r">${rb.seedsAlone['3']}회 · ${rb.seedsAlone['4']}회 유지</td></tr>
+      <tr><td>계층적 군집 3종 (Ward·평균·완전 연결)</td><td class="r">${yes(hAll)}</td></tr>
+      <tr><td>지표를 하나씩 뺐을 때 (5회)</td><td class="r">${lo.filter(Boolean).length}회 유지</td></tr></tbody></table></div>
+      <p style="margin:0;font-size:13px;color:var(--ink-2)">실루엣 점수는 k=2~6에서 ${f(Math.min(...sils), 2)}~${f(Math.max(...sils), 2)}로, 시도 전체의 군집 경계가 뚜렷한 편은 아닙니다. 또 ${lose.join('·')} 중 하나를 빼면 대구가 다른 시도와 묶입니다. 대구의 특이성은 <b>높은 매립, 높은 에너지회수, 낮은 물질재활용이 함께 나타나는 조합</b>에서 나온다는 뜻입니다.</p>`;
+  }
+
+  /* 매립 성분 */
+  const R4 = ['폐지류', '폐합성수지류', '폐금속류', '폐유리류'];
+  const nameMap = { '폐지류': '폐지(종이)', '폐합성수지류': '플라스틱·비닐', '폐금속류': '금속', '폐유리류': '유리', '폐섬유류': '섬유', '음식물류 폐기물': '음식물', '폐목재류': '목재', '폐고무류': '고무', '건설폐재류(공사장생활폐기물)': '공사장생활폐기물', '폐토사류': '토사', '폐타일 및 도자기류': '타일·도자기', '연탄재': '연탄재' };
+  const mi = D.mixItems.map(i => ({ ...i, nm: i.item === '기타' ? (i.group === '가연성' ? '기타 가연성' : '기타 불연성') : nameMap[i.item] || i.item }));
+  const L = n => mi.find(i => i.nm === n).land;
+  function drawLand() {
+    const sepLand = fl['재활용품 분리배출'].land, rLand = mi.filter(i => R4.includes(i.item)).reduce((a, i) => a + i.land, 0);
+    const small = dg.landT - (L('공사장생활폐기물') + L('플라스틱·비닐') + L('폐지(종이)') + L('유리') + L('금속') + L('기타 가연성') + L('음식물') + L('기타 불연성'));
+    const pc = v => f(v / dg.landT * 100, 1) + '%';
+    const layers = [
+      { name: '플라스틱·비닐', value: L('플라스틱·비닐'), color: 'var(--c-mat)' },
+      { name: '폐지(종이)', value: L('폐지(종이)'), color: 'color-mix(in oklab, var(--c-mat) 60%, #fff)', dark: true },
+      { name: '유리·금속', value: L('유리') + L('금속'), color: 'color-mix(in oklab, var(--c-mat) 34%, #fff)', dark: true },
+      { name: '공사장생활폐기물', value: L('공사장생활폐기물'), color: 'var(--c-inc)' },
+      { name: '음식물', value: L('음식물'), color: 'var(--c-en)', dark: true },
+      { name: '기타 가연성', value: L('기타 가연성'), color: '#8d7f70' },
+      { name: '기타 불연성', value: L('기타 불연성'), color: '#b9ab99', dark: true },
+      { name: '섬유·목재·고무 등', value: small, color: '#6c6157' },
+    ].map(l => ({ ...l, tip: `<b>${l.name}</b><br>매립 ${T(l.value)} · 대구 매립량의 ${pc(l.value)}` }));
+    V.strata($('landstrata'), { layers, height: 430, label: '대구 매립량 성분별 지층 단면', surfaceLabel: `지표면 아래 · 2024년 한 해 매립 ${T(dg.landT)}`,
+      brackets: [{ names: ['플라스틱·비닐', '폐지(종이)', '유리·금속'], color: 'var(--c-mat)', title: '되살릴 수 있었던 자원', value: `${T(rLand)} · ${f(rLand / dg.landT * 100, 0)}%`, note: '분리배출했다면 재활용 가능' },
+        { names: ['공사장생활폐기물'], color: 'var(--c-inc)', title: '공사장생활폐기물', value: `${T(dg.constrLandT)} · ${f(dg.constrLandShare, 0)}%`, note: `전국 평균 비중 ${f(kr.constrLandShare, 1)}%` }] });
+    const items = mi.filter(i => i.land > 300).map(i => ({ name: i.nm, value: i.land, color: R4.includes(i.item) ? 'var(--c-mat)' : i.item.startsWith('건설') ? 'var(--c-inc)' : 'var(--other)', strong: R4.includes(i.item) || i.item.startsWith('건설'),
+      tip: `<b>${i.nm}</b><br>매립 ${T(i.land)} · 대구 매립량의 ${pc(i.land)}<br><span class="k">봉투 배출 ${T(i.gen)} 중 ${f(i.land / i.gen * 100, 0)}% 매립</span>` }));
+    items.push({ name: '분리배출품 처리 잔여', value: sepLand, tip: `분리배출 재활용품 중 매립 ${T(sepLand)}` }); items.sort((a, b) => b.value - a.value);
+    V.listBars($('landlist'), { left: 118, rowH: 24, items, label: '대구 매립량 성분 막대' });
+    // 봉투 성상 와플
+    const rGen = mi.filter(i => R4.includes(i.item)).reduce((a, i) => a + i.gen, 0), con = mi.find(i => i.item.startsWith('건설')).gen, food = mi.find(i => i.item === '음식물류 폐기물').gen;
+    const grp = [{ name: '재활용 가능(종이·플라스틱·금속·유리)', value: rGen, color: 'var(--c-mat)' }, { name: '공사장생활폐기물', value: con, color: 'var(--c-inc)' }, { name: '음식물', value: food, color: 'var(--c-en)' }, { name: '기타', value: dg.mixT - rGen - con - food, color: 'var(--other)' }];
+    const host = $('bagwaffle'), wf = V.waffle(host, { groups: grp, cols: (host.clientWidth || 400) < 380 ? 10 : 20, label: '종량제봉투 성상 100칸 와플' });
+    $('bag-legend').innerHTML = grp.map((g, i) => `<li><i style="background:${g.color}"></i>${g.name} <b style="color:var(--ink)">${wf.counts[i]}칸</b></li>`).join('');
+    $('bag-insight').innerHTML = `봉투 속 재활용 가능 품목 <b>${T(rGen)}</b> 중 <b>${T(rLand)}</b>이 매립되었습니다. 대구 매립량의 <b>${f(rLand / dg.landT * 100, 0)}%</b>입니다.`;
+    $('con-insight').innerHTML = `공사장생활폐기물 <b>${T(dg.constrLandT)}</b>은 거의 전량(99.6%)이 매립됩니다. 대구 매립량의 <b>${f(dg.constrLandShare, 1)}%</b>로, 전국 평균(${f(kr.constrLandShare, 1)}%)의 3배가 넘습니다.`;
+  }
+
+  /* 구·군 */
+  const GM = [
+    { k: 'mixLand', n: '종량제 매립률', u: '%', ramp: R_BAD, s: '종량제 쓰레기 중 매립 비율. 북구·달서구가 60% 안팎으로 가장 높습니다.' },
+    { k: 'land', n: '매립률', u: '%', ramp: R_BAD, s: '발생량 중 매립 비율.' },
+    { k: 'residue', n: '잔재물률', u: '%', ramp: R_BAD, s: '분리배출품 중 잔재물 비율. 서구·동구·수성구가 26~28%입니다. 군위군은 자료가 없습니다.' },
+    { k: 'mat', n: '물질재활용률', u: '%', ramp: R_GOOD, s: '색이 짙을수록 재활용을 잘하는 곳입니다. 달성군이 가장 높고 중구가 가장 낮습니다.' },
+    { k: 'kgDay', n: '1인당 발생량', u: 'kg', dec: 2, ramp: R_NEU, s: '1인당 하루 발생량. 상업지역인 중구가 1.08 kg으로 가장 많습니다.' },
+    { k: 'sepPerCap', n: '1인당 분리배출', u: 'kg', ramp: R_GOOD, s: '1인당 연간 재활용품 분리배출량. 색이 짙을수록 많이 분리배출합니다.' },
+  ];
+  const TYPE_DEF = { '중구': ['상업지역형', '1인당 발생량 1.08kg(대구 최고), 물질재활용률 11.0%(최저)', '상가·음식점 분리배출 점검, 업소용 재활용품 수거 요일 신설', '--c-land'],
+    '북구': ['매립 의존형', '종량제 쓰레기의 60% 안팎을 매립(대구 전체 49.8%)', '공사장생활폐기물 별도 수거, 소각·SRF 반입 물량 우선 배정', '--c-inc'],
+    '달성군': ['벤치마크', '잔재물률 10.3%(대구 최저), 물질재활용률 31.7%(대구 최고)', '수거·선별 방식을 다른 구·군과 공유', '--c-mat'],
+    '서구': ['분리배출 품질형', '잔재물률 23~28%로 분리배출의 4분의 1이 쓰레기로 나옴', '공동주택 단지별 품질 피드백, AI 분리배출 안내 우선 보급', '--c-en'] };
+  const ORDER = ['중구', '서구', '북구', '달성군'], GNAMES = ['중구', '동구', '서구', '남구', '북구', '수성구', '달서구', '달성군'];
+  const GTYPES = ORDER.map(k => { const grp = D.guCluster.ward.find(g => g.includes(k)), d = TYPE_DEF[k]; return { members: GNAMES.filter(n => grp.includes(n)), name: d[0], why: d[1], rx: d[2], color: d[3] }; });
+  const guData = Object.fromEntries(D.gu.map(x => [x.name, x.name === '군위군' ? { ...x, residue: null } : x]));
+  const gseg = $('gu-seg'); gseg.innerHTML = GM.map((m, i) => `<button type="button" aria-pressed="${i === 0}" data-i="${i}">${m.n}</button>`).join('');
+  let gcur = 0;
+  function drawGuMap() {
+    const m = GM[gcur], vals = Object.values(guData).map(x => x[m.k]).filter(v => v != null), mn = Math.min(...vals), mx = Math.max(...vals);
+    $('gu-title').textContent = `구·군별 ${m.n} (2024)`; $('gu-sub').textContent = m.s;
+    V.tileMap($('gumap'), { grid: V.GU_GRID, value: n => guData[n][m.k], color: t => m.ramp(.1 + .9 * t), dec: m.dec ?? 1, unit: m.u === 'kg' ? '' : m.u, maxCell: 118, aspect: .62, label: `대구 구·군별 ${m.n} 타일 지도`,
+      tip: (n, v) => `<b>${n}</b> ${m.n} ${v == null ? '자료 없음' : f(v, m.dec ?? 1) + m.u}<br><span class="k">대구 전체 ${f(dg[m.k], m.dec ?? 1)}${m.u} · 인구 ${f(guData[n].pop)}명</span>` });
+    $('gu-min').textContent = f(mn, m.dec ?? 1) + m.u; $('gu-max').textContent = f(mx, m.dec ?? 1) + m.u;
+    $('gu-ramp').style.background = `linear-gradient(90deg, ${m.ramp(.1)}, ${m.ramp(1)})`;
+  }
+  gseg.onclick = e => { const b = e.target.closest('button'); if (!b) return; gcur = +b.dataset.i; gseg.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); drawGuMap(); };
+  function drawGu() {
+    drawGuMap();
+    const ref = { kgDay: dg.kgDay, mat: dg.mat, land: dg.land, mixLand: dg.mixLand, residue: dg.residue, sepPerCap: dg.sepPerCap, feeRatio: dg.feeRatio };
+    V.heatTable($('heat'), { rows: Object.values(guData), cols: [
+      { key: 'kgDay', name: '1인당 발생', unit: 'kg/일', dec: 2 }, { key: 'land', name: '매립률', unit: '%' }, { key: 'mixLand', name: '종량제 매립률', unit: '%' },
+      { key: 'mat', name: '물질재활용률', unit: '%', goodHigh: true }, { key: 'residue', name: '잔재물률', unit: '%' }, { key: 'sepPerCap', name: '1인당 분리배출', unit: 'kg/년', goodHigh: true },
+      { key: 'feeRatio', name: '수수료 비율', unit: '%(참고)', neutral: true }].map(c => ({ ...c, ref: ref[c.key] })) });
+    const rx = GTYPES.map(t => [t.members.join('·') + ' — ' + t.name, t.why, t.rx, t.color]);
+    rx.push(['군위군 — 별도 관리', '2023년 편입, 잔재물 자료가 없어 유형 분류에서 제외. 매립률 36.9%로 가장 높음', '잔재물 통계부터 갖춰 다른 구·군과 같은 기준으로 비교', '--axis']);
+    $('gu-rx').innerHTML = `<p class="note" style="margin:0">계층적 군집 분석(4개 지표)으로 나눈 유형입니다. Ward 연결과 평균 연결이 같은 결과를 냈습니다.</p>` + rx.map(r => `<div class="card" style="border-left:4px solid var(${r[3]})"><h3>${r[0]}</h3><p class="sub" style="margin-bottom:6px">${r[1]}</p><p style="margin:0;font-size:13.5px"><b>처방</b> ${r[2]}</p></div>`).join('');
+  }
+
+  /* 시뮬레이터 */
+  const ids = ['a', 'b', 'c', 'r'];
+  function sim() {
+    const v = Object.fromEntries(ids.map(i => [i, +$(i).value]));
+    ['a', 'b', 'c'].forEach(i => $(i + 'o').textContent = v[i] + '%');
+    $('ro').textContent = v.r.toFixed(1) + '%';
+    const R = V.scenario(D, { a: v.a / 100, b: v.b / 100, c: v.c / 100, r: v.r });
+    V.waterfall($('simbar'), { height: 250, label: '매립량 감축 폭포 차트',
+      start: { name: '현재\n(2024)', value: dg.landT, color: 'var(--other)' },
+      steps: [{ name: '공사장\n선별', value: R.cutCon, color: 'var(--c-inc)' }, { name: '봉투 속\n재활용품', value: R.cutR, color: 'var(--c-mat)' }, { name: '봉투 속\n음식물', value: R.cutFood, color: 'var(--c-en)' }],
+      end: { name: '시나리오', value: R.landT, color: 'var(--c-land)', tip: `<b>시나리오 매립량</b><br>${T(R.landT)} (−${f(R.cut / dg.landT * 100, 0)}%)` } });
+    $('simbrk').innerHTML = R.cut > 0 ? `<span>감축 내역</span><span><i style="background:var(--c-inc)"></i>공사장 선별 −${T(R.cutCon)}</span><span><i style="background:var(--c-mat)"></i>봉투 속 재활용품 −${T(R.cutR)}</span><span><i style="background:var(--c-en)"></i>봉투 속 음식물 −${T(R.cutFood)}</span>` : '<span>슬라이더를 움직이면 감축 내역이 표시됩니다.</span>';
+    $('r-land').innerHTML = f(R.landPct, 1) + '<small>%</small>';
+    $('r-land-c').textContent = `현재 ${f(dg.land, 1)}% · 전국 ${R.rank}위 수준`;
+    $('r-mat').innerHTML = f(R.matPct, 1) + '<small>%</small>';
+    $('r-mat-c').textContent = `현재 ${f(dg.mat, 1)}% · 전국 ${f(kr.mat, 1)}%`;
+    $('r-ghg').innerHTML = f(R.ghg / 1000, 1) + '<small>천 tCO₂eq</small>';
+    $('r-cut').innerHTML = T(R.cut).replace(' t', '<small> t</small>');
+    $('r-cut-c').textContent = `하루 ${f(R.cut / 366, 0)} t`;
+    const day0 = V.scenarioBase(D).mixLandT / 366, day = Math.max(0, R.perDay);
+    $('dg-now').textContent = f(day, 0); $('dg-fill').style.width = (day / day0 * 100).toFixed(1) + '%'; $('dg-max').textContent = `현재 ${f(day0, 0)} t`;
+    $('dg-txt').textContent = `붉은 부분이 2030년 전에 소각·SRF 등 다른 처리로 돌려야 하는 물량입니다. 이 시나리오에서는 하루 ${f(day0 - day, 0)} t을 줄입니다.`;
+    $('r-call').innerHTML = R.mixLandLeft > 0
+      ? `그래도 종량제 쓰레기 <b>${T(R.mixLandLeft)}</b>(하루 약 <b>${f(R.perDay, 0)} t</b>)은 여전히 매립됩니다. 2030년 직매립 금지를 지키려면 이 물량을 감당할 <b>소각·SRF 처리 용량</b>을 함께 확보해야 합니다. 시민 행동과 처리시설 확충, 둘 다 필요합니다.`
+      : `종량제 직매립을 모두 없앨 수 있는 시나리오입니다.`;
+  }
+  ids.forEach(i => $(i).addEventListener('input', sim));
+  document.querySelector('.presets').onclick = e => { const b = e.target.closest('button'); if (!b) return; b.dataset.p.split(',').forEach((v, i) => $(ids[i]).value = v); sim(); };
+
+  function drawCarbon() {
+    const me = D.methane, tot = me.reduce((a, m) => a + m.co2e, 0), nm = { '폐지류': '폐지(종이)', '음식물류 폐기물': '음식물', '폐섬유류': '섬유', '폐목재류': '목재', '폐고무류': '고무' };
+    $('ch4-total').innerHTML = f(tot / 10000, 1) + '만<small>tCO₂eq</small>';
+    V.listBars($('ch4-bars'), { left: 84, rowH: 26, label: '매립 유기물 성분별 메탄 잠재량', items: me.slice().sort((a, b) => b.co2e - a.co2e).map((m, i) => ({ name: nm[m.item], value: m.co2e, label: `${T(m.co2e)} · ${f(m.co2e / tot * 100, 0)}%`, color: i === 0 ? 'var(--c-land)' : 'color-mix(in oklab, var(--c-land) 42%, var(--surface-2))', strong: i === 0,
+      tip: `<b>${nm[m.item]}</b><br>매립 ${T(m.land)}<br>메탄 잠재량 ${T(m.co2e)}CO₂eq (${f(m.co2e / tot * 100, 1)}%)<br><span class="k">매립 1 t당 ${f(D.ipcc.efPerTon[m.item], 2)} tCO₂eq</span>` })) });
+    const paper = me.find(m => m.item === '폐지류'), a = paper.land / dg.landT * 100, b = paper.co2e / tot * 100;
+    $('ch4-paper-title').textContent = `종이는 매립량의 ${f(a, 0)}%, 메탄 잠재량의 ${f(b, 0)}%`;
+    $('ch4-meter').innerHTML = `<span>매립량에서</span><div class="tr"><i style="width:${a}%;background:var(--other)"></i></div><b>${f(a, 0)}%</b><span>메탄 잠재량에서</span><div class="tr"><i style="width:${b}%;background:var(--c-land)"></i></div><b>${f(b, 0)}%</b>`;
+    const G = V.scenario(D, { a: .3, b: .5, c: .5, r: 11.3 });
+    $('ch4-insight').innerHTML = `목표 시나리오(봉투 속 재활용품 30% 분리배출, 음식물 혼입 50% 감소)를 달성하면 메탄 잠재량이 <b>${f(G.ghg / 10000, 1)}만 tCO₂eq(${f(G.ghg / tot * 100, 0)}%)</b> 줄어듭니다.`;
+  }
+  // 대구시 기본계획 표 4-1(190쪽)의 폐기물 부문 수치(천 tCO2eq)와 211쪽의 소각 시설 용량. 공공데이터가 아니라 계획서에서 인용한 값이다.
+  const PLAN = { waste2018: 1072, waste2030: 755, incinCap: 320 };
+  function drawPlan() {
+    V.listBars($('plan-bars'), { left: 96, rowH: 34, label: '대구시 폐기물 부문 온실가스 목표', items: [
+      { name: '2018년 기준', value: PLAN.waste2018 * 1000, label: f(PLAN.waste2018 / 10, 1) + '만 t', color: 'var(--other)' },
+      { name: '2030년 목표', value: PLAN.waste2030 * 1000, label: f(PLAN.waste2030 / 10, 1) + '만 t', color: 'var(--c-mat)', strong: true }] });
+    $('plan-txt').innerHTML = `대구시는 전체 온실가스를 2018년보다 45% 줄이는 목표 아래, 폐기물 부문에서 <b style="color:var(--ink)">${f((PLAN.waste2018 - PLAN.waste2030) / 10, 1)}만 tCO₂eq(${f((1 - PLAN.waste2030 / PLAN.waste2018) * 100, 0)}%)</b>를 줄이기로 했습니다. 계획에는 방천리 위생매립장 가스 자원화, 폐기물 전처리시설 확대, 자원재활용 생활문화 정착 같은 과제가 들어 있습니다. 위의 메탄 잠재량은 산정 방식이 달라 이 수치와 바로 비교할 수는 없지만, 어떤 성분부터 매립에서 빼야 하는지를 보여 줍니다.`;
+  }
+  function drawKpi() {
+    const G = V.scenario(D, { a: .3, b: .5, c: .5, r: 11.3 }), B = V.scenarioBase(D), con = D.mixItems.find(i => i.item.startsWith('건설'));
+    $('kpi').innerHTML = '<thead><tr><th scope="col">성과 지표</th><th scope="col" class="n">2024년(현재)</th><th scope="col" class="n">2030년 목표</th><th scope="col">확인 자료</th></tr></thead><tbody>' + [
+      ['생활폐기물 매립률', f(dg.land, 1) + '%', f(G.landPct, 1) + '% 이하', '전국 폐기물 발생 및 처리현황'],
+      ['물질재활용률', f(dg.mat, 1) + '%', f(G.matPct, 1) + '% 이상', '〃'],
+      ['분리배출 잔재물률', f(dg.residue, 1) + '%', f(kr.residue, 1) + '% (2024년 전국 평균)', '〃'],
+      ['공사장생활폐기물 재활용률', f(con.en / con.gen * 100, 1) + '%', '50%', '〃'],
+      ['종량제 쓰레기 하루 직매립량', f(B.mixLandT / 366, 0) + ' t', f(G.perDay, 0) + ' t → 처리시설 연계로 0', '〃, 대구광역시 생활폐기물 처리'],
+    ].map(r => `<tr><td>${r[0]}</td><td class="n">${r[1]}</td><td class="n"><b>${r[2]}</b></td><td>${r[3]}</td></tr>`).join('') + '</tbody>';
+  }
+  /* 우리 동네, 우리 집 */
+  const msel = $('mine-gu'); msel.innerHTML = D.gu.map(g => `<option value="${g.name}"${g.name === '달서구' ? ' selected' : ''}>${g.name}</option>`).join('');
+  function drawMine() {
+    const name = msel.value, g = guData[name], n = +$('mine-n').value; $('mine-no').textContent = n + '명';
+    const all = Object.values(guData), rk = (k, v) => 1 + all.filter(x => x[k] != null && x[k] > v).length;
+    const rows = [['mixLand', '종량제 매립률', '%', false, 1], ['residue', '잔재물률', '%', false, 1], ['mat', '물질재활용률', '%', true, 1], ['kgDay', '1인당 발생량', 'kg', false, 2]].map(([k, nm2, u, hiGood, dec]) => {
+      const v = g[k], cnt = all.filter(x => x[k] != null).length;
+      return { name: nm2, unit: u, dec, ref: dg[k], good: v == null ? false : (hiGood ? v >= dg[k] : v <= dg[k]), rankText: v == null ? '자료 없음' : `${cnt}곳 중 ${rk(k, v)}번째로 높음`, note: hiGood ? '높을수록 유리' : '낮을수록 유리', values: all.map(x => ({ name: x.name, v: x[k] })) }; });
+    $('mine-title').textContent = `${name} 성적표`;
+    const ty = GTYPES.find(t => t.members.includes(name));
+    $('mine-type').innerHTML = ty ? `유형: <b style="color:var(--ink)">${ty.name}</b> · ${ty.rx}` : '2023년 대구에 편입된 지역으로, 유형 분류에서 제외했습니다.';
+    V.strips($('mine-strips'), { highlight: name, refLabel: '대구', rows, rowH: 54, label: `${name}의 구·군 내 위치` });
+    // 우리 집 계산 (공사장생활폐기물 제외, 봉투 성상은 대구 전체 추정치)
+    const B = V.scenarioBase(D), mixHome = dg.mixT - B.con.gen, rS = B.rGen / mixHome, fS = B.food.gen / mixHome;
+    const perCap = (g.mixT - g.constrT) * 1000 / g.pop, bag = perCap * n, rec = bag * rS, food = bag * fS, etc = bag - rec - food;
+    $('hh-title').textContent = `${name} ${n}인 가구의 1년 종량제봉투`;
+    $('hh-total').innerHTML = f(bag, 0) + '<small>kg / 년</small>';
+    const seg = [['재활용 가능 품목', rec, 'var(--c-mat)'], ['음식물', food, 'var(--c-en)'], ['기타', etc, 'var(--ink-3)']];
+    $('hh-seg').innerHTML = seg.map(([nm2, v, c]) => `<span style="flex:${v};background:${c}${c.includes('c-en') ? ';color:#17120e' : ''}">${v / bag > .12 ? f(v / bag * 100, 0) + '%' : ''}</span>`).join('');
+    $('hh-legend').innerHTML = seg.map(([nm2, v, c]) => `<li><i style="background:${c}"></i>${nm2} ${f(v, 0)} kg</li>`).join('');
+    $('hh-list').innerHTML = [
+      ['하루에 버리는 종량제 쓰레기', f(bag / 366 * 1000, 0) + ' g'],
+      ['그 안에 섞인 종이·플라스틱·금속·유리', f(rec, 0) + ' kg / 년'],
+      ['이 중 30%만 분리배출해도 줄어드는 양', f(rec * .3, 0) + ' kg / 년'],
+      [`지금 ${name}의 종량제 매립률`, f(g.mixLand, 1) + '%'],
+    ].map(r => `<li><span>${r[0]}</span><b>${r[1]}</b></li>`).join('');
+  }
+  msel.addEventListener('change', drawMine); $('mine-n').addEventListener('input', drawMine);
+  function drawRec() {
+    const G = V.scenario(D, { a: .3, b: .5, c: .5, r: 11.3 }), B = V.scenarioBase(D);
+    const cs = D.csvCheck.find(x => x.item === '소각');
+    const csvTxt = `대구시 공개 CSV의 소각 합계(${f(cs.csvTotal, 1)} t)는 배출 방식별 합계(${f(cs.csvSum, 1)} t) 및 국가통계와 ${f(Math.abs(cs.csvSum - cs.csvTotal), 0)} t 차이가 납니다. 나머지 항목은 모두 일치해, 배출 방식별 값을 기준으로 삼았습니다.`;
+    $('csv-note').textContent = '데이터 점검: ' + csvTxt; $('csv-note2').textContent = csvTxt;
+    const meTot = D.methane.reduce((a, m) => a + m.co2e, 0), paper = D.methane.find(m => m.item === '폐지류');
+    const day0 = B.mixLandT / 366, resGain = (dg.residue - kr.residue) / 100 * dg.sepT, paperCut = .3 * paper.co2e;
+    $('fx').innerHTML = [
+      ['연간 매립량', '−' + f(G.cut / 10000, 1), '만 t', `${T(dg.landT)} → ${T(G.landT)} (−${f(G.cut / dg.landT * 100, 0)}%)`],
+      ['물질재활용률', f(G.matPct, 1), '%', `현재 ${f(dg.mat, 1)}%에서 +${f(G.matPct - dg.mat, 1)}%p`],
+      ['매립 메탄 잠재량', '−' + f(G.ghg / 10000, 1), '만 tCO₂eq', `2024년 매립분의 ${f(G.ghg / meTot * 100, 0)}% (상한 추정)`],
+      ['하루 직매립 물량', f(G.perDay, 0), 't', `현재 ${f(day0, 0)} t에서 −${f(day0 - G.perDay, 0)} t`],
+    ].map(r => `<div><div class="l">${r[0]}</div><div class="v">${r[1]}<small>${r[2]}</small></div><div class="c">${r[3]}</div></div>`).join('');
+    const plans = [
+      { n: '개선 방안 1', c: '--c-inc', t: '공사장생활폐기물을 따로 걷어 선별',
+        why: `대구 매립량의 <b>${f(dg.constrLandShare, 0)}%</b>(${T(dg.constrLandT)})입니다. 전국 평균 비중은 ${f(kr.constrLandShare, 1)}%입니다. 99.6%가 그대로 매립되고, 시민 분리배출 캠페인으로는 줄지 않습니다.`,
+        how: ['인테리어·소규모 공사의 배출신고를 사진 첨부 방식의 온라인 신고로 간소화', '구·군 임시 집하장에서 목재·금속·폐콘크리트를 나눠 받아 선별·순환골재로 재활용', '종량제 매립률이 높은 북구·달서구(매립 의존형)에서 먼저 시범'],
+        link: '폐기물 전처리시설 확대',
+        eff: `절반만 선별해도 매립 <b>−${T(G.cutCon)}</b>(대구 매립량의 ${f(G.cutCon / dg.landT * 100, 0)}%). 공사장생활폐기물 재활용률 0.2% → 50%` },
+      { n: '개선 방안 2', c: '--c-mat', t: '봉투 속 자원을 분리배출로',
+        why: `종량제봉투의 <b>43%</b>(${T(B.rGen)})가 재활용 가능 품목이고 그중 ${T(B.rLand)}이 매립됩니다. 특히 종이는 매립량의 ${f(paper.land / dg.landT * 100, 0)}%인데 메탄 잠재량의 ${f(paper.co2e / meTot * 100, 0)}%를 차지합니다.`,
+        how: ['효과가 큰 품목부터: 종이와 플라스틱을 우선 대상으로 한 분리배출 캠페인', '사진을 보내면 품목과 버리는 법을 알려 주는 AI 분리배출 안내(카카오톡 채널)', '1인당 발생량이 가장 많은 중구(상업지역형)에 업소 전용 재활용품 수거 요일 신설'],
+        link: '자원재활용 생활문화 정착, 그린섬유 플랫폼 조성(PET병 재활용)',
+        eff: `30%만 전환해도 매립 <b>−${T(G.cutR)}</b>, 종이 몫의 메탄 잠재량 <b>−${f(paperCut / 10000, 1)}만 tCO₂eq</b>` },
+      { n: '개선 방안 3', c: '--c-en', t: '분리배출의 품질 높이기',
+        why: `분리배출한 재활용품의 <b>${f(dg.residue, 1)}%</b>(${T(dg.residueT)})가 잔재물로 버려집니다. 17개 시도 중 가장 높고, 서구·동구·남구·수성구는 23~28%입니다.`,
+        how: ['선별장에서 확인한 잔재물 비율을 공동주택 단지별로 알려 주는 품질 피드백', '분리 여부보다 상태를 안내: 헹구기, 라벨 떼기, 섞지 않기', '잔재물률이 가장 낮은 달성군(10.3%)의 수거·선별 방식을 다른 구·군과 공유'],
+        link: '자원재활용 생활문화 정착(수거체계 및 처리방법 개선)',
+        eff: `전국 평균(${f(kr.residue, 1)}%)까지 낮추면 재활용되는 양 <b>+${T(resGain)}</b>, 물질재활용률 +${f(resGain / dg.total * 100, 1)}%p` },
+      { n: '개선 방안 4', c: '--c-land', t: '남는 물량만큼 처리 용량 확보',
+        why: `위 세 가지를 모두 달성해도 종량제 쓰레기 하루 약 <b>${f(G.perDay, 0)} t</b>은 남습니다. 2030년부터는 이 물량을 바로 묻을 수 없습니다.`,
+        how: ['이 시뮬레이터로 해마다 남는 물량을 다시 계산해 필요한 처리 용량을 산정', '소각 전에 선별(전처리)을 거쳐 플라스틱을 먼저 빼내 화석 탄소 배출을 억제', '매립가스 자원화 사업을 이어 가 이미 묻힌 폐기물의 메탄을 회수'],
+        link: '소각 열에너지 공급 확대, 폐기물 전처리시설 확대, 방천리 위생매립장 가스 자원화 사업',
+        eff: `새로 감당해야 할 물량을 하루 <b>${f(day0, 0)} t → ${f(G.perDay, 0)} t</b>으로 축소(−${f(day0 - G.perDay, 0)} t)` },
+      { n: '개선 방안 5', c: '--ink-3', t: '데이터로 관리하고 공개하기', wide: true,
+        why: `구·군마다 문제가 생기는 지점이 다른데, 지금은 한눈에 비교할 자료가 없습니다. 통계에도 보완할 점이 있습니다(군위군 잔재물 자료 없음, 대구시 공개 CSV의 소각 합계 ${f(Math.abs(cs.csvSum - cs.csvTotal), 0)} t 불일치).`,
+        how: ['이 대시보드의 구·군 진단표를 매년 통계 공개에 맞춰 갱신해 공개(분석 코드를 다시 실행하면 자동 갱신)', '성과 지표 5개를 같은 통계로 해마다 점검', '공개 데이터의 오류와 빈칸을 보완'],
+        link: '기본계획의 연도별 추진상황 점검에 활용할 수 있음',
+        eff: '정책 효과를 해마다 같은 지표로 확인할 수 있고, 시민은 우리 동네의 변화를 직접 볼 수 있습니다' },
+    ];
+    $('plans').innerHTML = plans.map(pl => `<div class="plan${pl.wide ? ' wide' : ''}" style="border-top-color:var(${pl.c})"><div class="n">${pl.n}</div><h3>${pl.t}</h3><dl>
+      <dt>문제</dt><dd>${pl.why}</dd><dt>개선 방안</dt><dd><ol>${pl.how.map(h => `<li>${h}</li>`).join('')}</ol></dd>
+      <dt>대구시 계획</dt><dd>${pl.link}</dd><dt>기대 효과</dt><dd class="eff">${pl.eff}</dd></dl></div>`).join('');
+    const pubInc = D.publicProc.inc / 366;
+    V.listBars($('cap-bars'), { left: 150, rowH: 30, label: '직매립 물량과 소각 용량 비교', items: [
+      { name: '현재 종량제 직매립', value: day0, label: f(day0, 0) + ' t/일', color: 'var(--c-land)', strong: true },
+      { name: '개선 방안 실행 후', value: G.perDay, label: f(G.perDay, 0) + ' t/일', color: 'color-mix(in oklab, var(--c-land) 45%, var(--surface-2))', strong: true },
+      { name: '성서 소각시설 용량', value: PLAN.incinCap, label: f(PLAN.incinCap, 0) + ' t/일', color: 'var(--c-inc)' },
+      { name: '2024년 공공 소각량', value: pubInc, label: f(pubInc, 0) + ' t/일', color: 'color-mix(in oklab, var(--c-inc) 45%, var(--surface-2))' }] });
+    $('cap-note').textContent = `소각시설 용량은 기본계획 211쪽에 적힌 값(160 t 2기)입니다. 이 시설은 2024년에 이미 하루 약 ${f(pubInc, 0)} t을 태웠습니다. 직매립 물량은 개선 방안을 실행한 뒤에도 소각 용량보다 많아, 감량과 처리 용량 확보를 함께 준비해야 합니다. 가동률과 연료화(SRF) 시설은 반영하지 않은 단순 비교입니다.`;
+    $('bottomline').innerHTML = `대구의 매립 문제는 많이 버려서가 아니라, 섞여 나오고 걸러지지 않아서 생깁니다. 줄일 수 있는 양(연 ${T(G.cut)})과 시설로 감당해야 할 양(하루 ${f(G.perDay, 0)} t)을 나눠서 준비해야 합니다.`;
+  }
+  function drawAll() {
+    drawHero(); drawStrips(); drawRank(); drawRec();
+    V.sankey($('sankey'), { fancy: true, flows: fl, height: 380, left: 118, right: 132, label: '대구 생활폐기물 배출방식별 처리 흐름' });
+    V.treatLegend($('treat-legend')); V.treatLegend($('treat-legend2'));
+    V.stack100($('stack-cmp'), { rows: [{ name: '대구', strong: true, ...totals(dg) }, { name: '전국', ...totals(kr) }], label: '처리방법 구성 대구와 전국' });
+    V.stack100($('stack-stream'), { left: 96, rows: [streamRow('종량제봉투', '종량제(혼합)'), streamRow('재활용품', '재활용품 분리배출'), streamRow('음식물', '음식물 분리배출')], label: '대구 배출 방식별 처리 구성' });
+    drawCluster(); drawLand(); drawCarbon(); drawPlan(); drawGu(); sim(); drawMine(); drawKpi();
+  }
+  drawAll();
+  let rt, lastW = innerWidth; addEventListener('resize', () => { if (innerWidth === lastW) return; lastW = innerWidth; clearTimeout(rt); rt = setTimeout(drawAll, 150); });
+  // 목차 하이라이트
+  const links = [...document.querySelectorAll('nav.toc a')];
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) links.forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + e.target.id)); }), { rootMargin: '-40% 0px -55% 0px' });
+  document.querySelectorAll('main section').forEach(s => io.observe(s));
+})();
+
+</script>
+</body>
+</html>
